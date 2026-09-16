@@ -1,4 +1,9 @@
 # Mi-Barrio-APP
+
+<<<<<<< HEAD
+Este es un pequeño proyecto que estamos realizando en la universidad.
+=======
+
 # Mi Barrio — MVP funcional
 
 App móvil basada en la Documentación de Diseño y Arquitectura del proyecto "Mi Barrio"
@@ -7,6 +12,7 @@ descrito en el documento, usando **Expo Router** y persistencia local con **Asyn
 (no requiere backend para este MVP).
 
 ## Requisitos previos
+
 - Node.js 18 o superior instalado en tu computadora.
 - La app **Expo Go** instalada en tu celular (App Store / Play Store).
 - Tu celular y tu computadora conectados a la **misma red Wi-Fi**.
@@ -18,19 +24,20 @@ descrito en el documento, usando **Expo Router** y persistencia local con **Asyn
    ```bash
    npm install
    ```
-3.o Iniciá el servidor de desarrllo:
+   3.o Iniciá el servidor de desarrllo:
    ```bash
    npx expo start
    ```
-4. Se va a abrir una terminal con un código QR:
+3. Se va a abrir una terminal con un código QR:
    - **Android:** abrí la app Expo Go y escaneá el QR desde ahí.
    - **iPhone:** abrí la app de Cámara nativa, apuntá al QR y tocá el aviso para abrir en Expo Go.
-5. La app va a compilar en tu celular y te va a mostrar la pantalla de bienvenida ("mi barrio").
+4. La app va a compilar en tu celular y te va a mostrar la pantalla de bienvenida ("mi barrio").
 
 > Si el QR no conecta, probá iniciar con `npx expo start --tunnel` (más lento, pero funciona
 > aunque el celular esté en datos móviles o una red distinta a la de tu PC).
 
 ## Cómo probarlo
+
 1. Como es la primera vez, no hay usuarios cargados: tocá **"Registrate"** y creá una cuenta
    (nombre, email, password). Queda guardada localmente en el celular.
 2. Vas a caer en el **Dashboard**, con el resumen de reportes por estado y el botón **Reportar**.
@@ -47,12 +54,14 @@ descrito en el documento, usando **Expo Router** y persistencia local con **Asyn
 6. En **Perfil** están tus datos y la opción de cerrar sesión.
 
 ## Diseño defensivo (offline-first)
+
 Como pide el Punto 4 del documento, si cerrás la app en medio de la carga de un reporte
 (por ejemplo, sin conexión), el progreso del Wizard (categoría, foto, descripción) queda
 guardado localmente y, al volver a abrir "Reportar", la app retoma en el paso siguiente al
 último completado, sin pedir que vuelvas a cargar todo desde cero.
 
 ## Estructura del proyecto
+
 Sigue el enrutamiento basado en archivos de Expo Router descripto en el Punto 7 del documento:
 
 ```
@@ -80,6 +89,7 @@ constants/
 ```
 
 ## Notas técnicas / próximos pasos sugeridos
+
 - **Persistencia:** hoy es 100% local (AsyncStorage), lo que ya cumple el flujo offline-first
   del documento. Para producción, conectar `ReportsContext` a un backend (Firebase, REST, etc.)
   reemplazando las funciones internas sin tocar las pantallas.
@@ -87,3 +97,4 @@ constants/
   de Google Maps en `app.json` (en Expo Go funciona sin configuración adicional).
 - **Autenticación:** es un mock local pensado para probar el flujo (RF1). Para producción,
   reemplazar por un proveedor real (Firebase Auth, Auth0, backend propio, etc.).
+  > > > > > > > 41a2bdc210d755cf831334da2e4c46afba14c30d
