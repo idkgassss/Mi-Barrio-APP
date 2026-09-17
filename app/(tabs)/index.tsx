@@ -1,37 +1,53 @@
 // app/(tabs)/index.tsx
-import { View, Text, StyleSheet } from 'react-native';
-import { Colors, Spacing, FontSize, Radius } from '@/constants/theme';
+import { View, FlatList, ActivityIndicator, Text, StyleSheet } from 'react-native';
+import { TarjetaReporte } from '@/components/TarjetaReporte';
+import { useReportes } from '@/hooks/useReportes';
+import { Reporte } from '@/types';
+import { Colors, Spacing, FontSize } from '@/constants/theme';
 
 export default function HomeScreen() {
+  // Traemos toda la lógica desde nuestro Custom Hook (¡la pantalla queda súper limpia!)
+  const { reportes, cargando, error, refrescar } = useReportes();
+
+  // Estado 1: Cargando (mientras el setTimeout hace su trabajo)
+  if (cargando) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
+  }
+
+  // Estado 2: Error (por si falla la carga)
+  if (error) {
+    return (
+      <View style={styles.center}>
+        <Text style={styles.error}>{error}</Text>
+      </View>
+    );
+  }
+
+  // Estado 3 y 4: Lista con datos o Lista vacía
   return (
     <View style={styles.container}>
-      {/* Header con nombre del proyecto */}
-      <View style={styles.header}>
-        <Text style={styles.titulo}>Mi Barrio</Text>
-        <Text style={styles.sub}>Reportes Ciudadanos - UNP 2026</Text>
-      </View>
-
-      {/* Sección de bienvenida */}
-      <View style={styles.bienvenida}>
-        <Text style={styles.msg}>
-          ¡Bienvenido! Aquí podrás reportar problemas de tu zona y hacer un seguimiento en tiempo
-          real.
-        </Text>
-      </View>
-
-      {/* Sección de Features (Lo que vamos a construir) */}
-      <View style={styles.features}>
-        <Text style={styles.featureLabel}>Módulos del Proyecto:</Text>
-        <View style={styles.featureCard}>
-          <Text style={styles.featureText}>📍 Mapa de reportes y geolocalización</Text>
-        </View>
-        <View style={styles.featureCard}>
-          <Text style={styles.featureText}>📷 Registro con cámara y fotos</Text>
-        </View>
-        <View style={styles.featureCard}>
-          <Text style={styles.featureText}>📊 Estados: Pendientes, En Proceso, Solucionados</Text>
-        </View>
-      </View>
+      <FlatList<Reporte>
+        data={reportes}
+        // keyExtractor es obligatorio: le dice a React cómo identificar cada ítem de forma única
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <TarjetaReporte
+            reporte={item}
+            onPress={(r) => console.log('Ver detalle del reporte:', r.id)}
+            onFavorito={(id) => console.log('Favorito marcado:', id)}
+          />
+        )}
+        // pull-to-refresh nativo: para recargar la lista deslizando hacia abajo
+        onRefresh={refrescar}
+        refreshing={cargando}
+        contentContainerStyle={styles.lista}
+        // Lo que se muestra si el array de mockData está vacío
+        ListEmptyComponent={<Text style={styles.vacio}>No hay reportes en tu barrio todavía.</Text>}
+      />
     </View>
   );
 }
@@ -40,50 +56,24 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
-    padding: Spacing.md,
   },
-  header: {
-    paddingTop: Spacing.xl,
-    paddingBottom: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.surface,
-  },
-  titulo: {
-    fontSize: FontSize.xxxl,
-    fontWeight: 'bold',
-    color: Colors.primary,
-  },
-  sub: {
-    fontSize: FontSize.md,
-    color: Colors.textMuted,
-    marginTop: Spacing.xs,
-  },
-  bienvenida: {
-    paddingVertical: Spacing.lg,
-  },
-  msg: {
-    fontSize: FontSize.lg,
-    color: Colors.text,
-    lineHeight: 22,
-  },
-  features: {
+  center: {
     flex: 1,
-    gap: Spacing.sm,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Colors.background,
   },
-  featureLabel: {
+  error: {
+    color: Colors.danger,
     fontSize: FontSize.md,
-    fontWeight: 'bold',
-    color: Colors.textMuted,
-    marginBottom: Spacing.xs,
   },
-  featureCard: {
-    backgroundColor: Colors.surface,
+  lista: {
     padding: Spacing.md,
-    borderRadius: Radius.md,
   },
-  featureText: {
+  vacio: {
+    textAlign: 'center',
+    color: Colors.textMuted,
     fontSize: FontSize.md,
-    color: Colors.text,
-    fontWeight: '500',
+    marginTop: Spacing.xl,
   },
 });
