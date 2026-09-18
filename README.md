@@ -1,100 +1,74 @@
-# Mi-Barrio-APP
+# Mi Barrio — MVP (Expo Router)
 
-<<<<<<< HEAD
-Este es un pequeño proyecto que estamos realizando en la universidad.
-=======
+Base funcional del proyecto desarrollada para la materia _Aplicaciones Móviles_ de la Tecnicatura Superior en Desarrollo de Software. El proyecto implementa un enrutamiento moderno basado en archivos utilizando Expo Router.
 
-# Mi Barrio — MVP funcional
+## Cómo correrlo
 
-App móvil basada en la Documentación de Diseño y Arquitectura del proyecto "Mi Barrio"
-(caso de estudio EcoVoz Urbana). Implementa RF1–RF5 y el diseño defensivo offline-first
-descrito en el documento, usando **Expo Router** y persistencia local con **AsyncStorage**
-(no requiere backend para este MVP).
+```bash
+npm install
+npx expo start
+```
 
-## Requisitos previos
+Escaneá el QR con Expo Go. No hace falta configurar Firebase para probar la app: los reportes se
+guardan localmente en el dispositivo (AsyncStorage) y arrancan con 3 reportes de ejemplo.
 
-- Node.js 18 o superior instalado en tu computadora.
-- La app **Expo Go** instalada en tu celular (App Store / Play Store).
-- Tu celular y tu computadora conectados a la **misma red Wi-Fi**.
-
-## Pasos para correrlo
-
-1. Descomprimí este proyecto y abrí una terminal en la carpeta `mi-barrio-app`.
-2. Instalá las dependencias:
-   ```bash
-   npm install
-   ```
-   3.o Iniciá el servidor de desarrllo:
-   ```bash
-   npx expo start
-   ```
-3. Se va a abrir una terminal con un código QR:
-   - **Android:** abrí la app Expo Go y escaneá el QR desde ahí.
-   - **iPhone:** abrí la app de Cámara nativa, apuntá al QR y tocá el aviso para abrir en Expo Go.
-4. La app va a compilar en tu celular y te va a mostrar la pantalla de bienvenida ("mi barrio").
-
-> Si el QR no conecta, probá iniciar con `npx expo start --tunnel` (más lento, pero funciona
-> aunque el celular esté en datos móviles o una red distinta a la de tu PC).
-
-## Cómo probarlo
-
-1. Como es la primera vez, no hay usuarios cargados: tocá **"Registrate"** y creá una cuenta
-   (nombre, email, password). Queda guardada localmente en el celular.
-2. Vas a caer en el **Dashboard**, con el resumen de reportes por estado y el botón **Reportar**.
-3. Tocá **Reportar** para abrir el Wizard de 3 pasos (RF2):
-   - Paso 1: elegí una categoría.
-   - Paso 2: sacá una foto con la cámara o elegí una de la galería (podés pasar sin foto).
-   - Paso 3: escribí una descripción y elegí desde cuándo existe el problema, y enviá.
-   - Al enviar, la app pide permiso de ubicación (RF3) para geolocalizar el reporte.
-4. En **Reportes** vas a ver la FlatList de "Mis reportes"; al tocar una tarjeta se abre
-   **Detalles del reporte**, con la línea de tiempo de seguimiento (RF5).
-5. En **Mapa** vas a ver los pines de todos los reportes cargados en el dispositivo,
-   coloreados por estado (rojo/amarillo/verde) y **sin ningún dato del usuario que reportó**
-   (anonimizado, según RF5 / RNF de Privacidad).
-6. En **Perfil** están tus datos y la opción de cerrar sesión.
-
-## Diseño defensivo (offline-first)
-
-Como pide el Punto 4 del documento, si cerrás la app en medio de la carga de un reporte
-(por ejemplo, sin conexión), el progreso del Wizard (categoría, foto, descripción) queda
-guardado localmente y, al volver a abrir "Reportar", la app retoma en el paso siguiente al
-último completado, sin pedir que vuelvas a cargar todo desde cero.
+Permisos que va a pedir la primera vez: **cámara** (paso 2 del wizard) y **ubicación** (paso 1 del
+wizard, para geolocalizar el reporte).
 
 ## Estructura del proyecto
 
-Sigue el enrutamiento basado en archivos de Expo Router descripto en el Punto 7 del documento:
-
-```
-app/
-  _layout.tsx          # Providers globales y Stack raíz
-  index.tsx             # Redirección inicial según sesión
-  (auth)/
-    login.tsx           # Log In / Sign Up
-  (tabs)/
-    _layout.tsx          # Tab Navigator
-    index.tsx            # Dashboard (Inicio)
-    reportes.tsx          # Mis reportes (FlatList)
-    mapa.tsx               # Mapa de reportes
-    perfil.tsx              # Perfil
-  reporte/
-    nuevo.tsx            # Wizard de nuevo reporte
-    [id].tsx              # Detalles del reporte (ruta dinámica)
-context/
-  AuthContext.tsx        # Autenticación mock persistida
-  ReportsContext.tsx     # CRUD de reportes + borrador resiliente
-components/
-  PrimaryButton.tsx, InputField.tsx, StatusBadge.tsx, ReportCard.tsx
-constants/
-  theme.ts               # Design Tokens (Punto 6)
+```text
+mi-barrio-app/
+├── app/
+│   ├── (auth)/         # Grupo de rutas de autenticación
+│   │   └── login.tsx   # UI de Login inmersivo
+│   ├── (tabs)/         # Navegación principal persistente
+│   │   ├── _layout.tsx # Configuración de Tab Navigator
+│   │   ├── index.tsx   # Dashboard de reportes (FlatList)
+│   │   ├── mapa.tsx    # Placeholder del mapa interactivo
+│   │   └── perfil.tsx  # Opciones del usuario
+│   └── detalle/        # Rutas dinámicas
+│       └── [id].tsx    # Detalle de cada reporte específico
+├── components/         # Componentes UI reutilizables
+├── constants/          # Tokens de diseño (Colores, tipografías)
+├── data/               # Origen de datos local (mockData)
+└── assets/             # Recursos estáticos e imágenes
 ```
 
-## Notas técnicas / próximos pasos sugeridos
+## Qué incluye este MVP
 
-- **Persistencia:** hoy es 100% local (AsyncStorage), lo que ya cumple el flujo offline-first
-  del documento. Para producción, conectar `ReportsContext` a un backend (Firebase, REST, etc.)
-  reemplazando las funciones internas sin tocar las pantallas.
-- **Mapa:** usa `react-native-maps`. Para publicar en producción vas a necesitar una API key
-  de Google Maps en `app.json` (en Expo Go funciona sin configuración adicional).
-- **Autenticación:** es un mock local pensado para probar el flujo (RF1). Para producción,
-  reemplazar por un proveedor real (Firebase Auth, Auth0, backend propio, etc.).
-  > > > > > > > 41a2bdc210d755cf831334da2e4c46afba14c30d
+- Login / Sign Up con selector segmentado (sesión "fake" persistida en el dispositivo).
+- Dashboard con contador de Pendientes / En proceso / Solucionados.
+- Wizard de 3 pasos: categoría → foto (opcional) → descripción + antigüedad → envío.
+  - Geolocalización automática al iniciar el wizard; si falla, pide dirección manual antes de
+    habilitar "Enviar reporte" (RG-03).
+- "Mis reportes" (lista), "Detalles del reporte" con línea de tiempo de seguimiento.
+- Mapa de reportes con pines coloreados por estado (react-native-maps), sin datos del emisor.
+- Perfil con menú de opciones y cerrar sesión.
+
+Lo que quedó **fuera** a propósito, tal como lo definieron ustedes en el MoSCoW (Won't): edición de
+perfil, notificaciones push, reapertura/cancelación de reportes, moderación por IA.
+
+## Por qué no arranca con Firebase ya conectado
+
+El profe confirmó que la base de datos no tiene que ser Firebase sí o sí. Para tener un MVP
+**estable desde el primer `npx expo start`**, sin depender de que alguien configure un proyecto de
+Firebase antes de poder probar la app, el estado se maneja con Zustand + AsyncStorage
+(`stores/useUsuarioStore.ts` y `stores/useReportesStore.ts`).
+
+Firebase sigue siendo la opción recomendada (así lo dice su propia documentación, sección 3) y ya
+está dejado listo para conectar sin tocar las pantallas:
+
+- `services/firebase.ts`: inicialización, calcada de Clase 5.
+- `services/firestoreReportes.ts`: capa de servicios con `getAll`, `getById`, `crear`,
+  `avanzarEstado`, lista para usar con `onSnapshot` — trae los pasos de migración comentados
+  arriba del archivo.
+- Cada punto del código donde algo se reemplaza por Firebase tiene un comentario `// TODO Firebase`.
+
+## Próximos pasos técnicos sugeridos
+
+1. Conectar Firebase Auth real (reemplaza el login "fake" de `useUsuarioStore.ts`).
+2. Conectar Firestore siguiendo `services/firestoreReportes.ts` + Cloud Storage para las fotos.
+3. Pantalla de selección manual de ubicación en un mapa (hoy el respaldo es un campo de texto).
+4. Mover el avance de estado (`avanzarEstado`) a un panel de "operador municipal" o a la consola de
+   Firebase, ya que en el MVP actual no hay un rol que lo dispare desde la app del vecino.
