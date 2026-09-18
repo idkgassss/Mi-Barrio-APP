@@ -50,5 +50,5 @@ export const REPORTES_MOCK: Reporte[] = [
     imagen: 'https://picsum.photos/seed/arbol1/400/300',
     categoria: 'espacios_verdes',
     solucionado: false,
-  }
+  },
 ];

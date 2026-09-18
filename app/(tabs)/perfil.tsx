@@ -11,6 +11,9 @@ export default function PerfilScreen() {
 
   return (
     <View style={styles.container}>
+fix/parametros-ruta
+      <Text style={styles.titulo}>[ pinta un fuchibol? ]</Text>
+
       {/* Cabecera con datos del usuario */}
       <View style={styles.header}>
         <View style={styles.avatarCaja}>
@@ -39,10 +42,10 @@ export default function PerfilScreen() {
       <TouchableOpacity style={styles.btnSalir} onPress={handleCerrarSesion}>
         <Text style={styles.btnSalirTexto}>CERRAR SESIÓN</Text>
       </TouchableOpacity>
+main
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
