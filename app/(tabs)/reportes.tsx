@@ -1,6 +1,6 @@
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import { useRouter } from 'expo-router';
 
-// 1. Datos falsos (Mock Data) para simular los reportes de la base de datos
 const REPORTES_MOCK = [
   { id: '1', titulo: 'Bache en la avenida', estado: 'Pendiente', fecha: '18/09/2026' },
   { id: '2', titulo: 'Luminaria rota', estado: 'En proceso', fecha: '15/09/2026' },
@@ -9,11 +9,17 @@ const REPORTES_MOCK = [
 ];
 
 export default function ReportesScreen() {
-  // 2. Esta función dibuja CADA tarjeta individualmente
+  const router = useRouter();
+
   const renderItem = ({ item }: { item: any }) => (
     <TouchableOpacity
       style={styles.card}
-      onPress={() => console.log(`Tocaste el reporte: ${item.id}`)} // Luego lo conectaremos a la pantalla de detalle
+      onPress={() => {
+        router.push({
+          pathname: '/detalle/[id]',
+          params: { id: item.id, titulo: item.titulo, estado: item.estado, fecha: item.fecha },
+        });
+      }}
     >
       <View style={styles.cardHeader}>
         <Text style={styles.cardTitulo}>{item.titulo}</Text>
@@ -28,7 +34,6 @@ export default function ReportesScreen() {
 
   return (
     <View style={styles.container}>
-      {/* 3. La FlatList renderiza la lista usando los datos y la función de arriba */}
       <FlatList
         data={REPORTES_MOCK}
         keyExtractor={(item) => item.id}
