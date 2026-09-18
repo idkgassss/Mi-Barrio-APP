@@ -1,35 +1,55 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { Colors } from '../../constants/theme';
 
 export default function HomeScreen() {
   const router = useRouter();
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.saludo}>Bienvenido, hdhsuaia</Text>
+    <>
+      {/* BONUS: Header Personalizado */}
+      <Stack.Screen
+        options={{
+          headerShown: true, // <-- LA CLAVE: Encendemos el header solo para esta pantalla
+          title: 'Mi Barrio',
+          headerStyle: { backgroundColor: Colors.primary },
+          headerTintColor: Colors.surface,
+          headerTitleStyle: { fontWeight: 'bold' },
+          headerRight: () => (
+            <TouchableOpacity onPress={() => router.push('/perfil')} style={{ marginRight: 15 }}>
+              <Ionicons name="person-circle-outline" size={28} color={Colors.surface} />
+            </TouchableOpacity>
+          ),
+        }}
+      />
 
-      <Text style={styles.seccionTitulo}>Resumen de Reportes</Text>
-      <View style={styles.card}>
-        <View style={styles.fila}>
-          <Text>Pendientes</Text>
-          <Text>1</Text>
+      <View style={styles.container}>
+        <Text style={styles.saludo}>Bienvenido, hdhsuaia</Text>
+
+        <Text style={styles.seccionTitulo}>Resumen de Reportes</Text>
+        <View style={styles.card}>
+          <View style={styles.fila}>
+            <Text>Pendientes</Text>
+            <Text>1</Text>
+          </View>
+          <View style={styles.separador} />
+          <View style={styles.fila}>
+            <Text>En proceso</Text>
+            <Text>1</Text>
+          </View>
+          <View style={styles.separador} />
+          <View style={styles.fila}>
+            <Text>Solucionados</Text>
+            <Text>1</Text>
+          </View>
         </View>
-        <View style={styles.separador} />
-        <View style={styles.fila}>
-          <Text>En proceso</Text>
-          <Text>1</Text>
-        </View>
-        <View style={styles.separador} />
-        <View style={styles.fila}>
-          <Text>Solucionados</Text>
-          <Text>1</Text>
-        </View>
+
+        <TouchableOpacity style={styles.btnReportar} onPress={() => router.push('/reportar/paso1')}>
+          <Text style={styles.btnText}>REPORTAR PROBLEMA</Text>
+        </TouchableOpacity>
       </View>
-
-      <TouchableOpacity style={styles.btnReportar} onPress={() => router.push('/reportar/paso1')}>
-        <Text style={styles.btnText}>REPORTAR PROBLEMA</Text>
-      </TouchableOpacity>
-    </View>
+    </>
   );
 }
 
