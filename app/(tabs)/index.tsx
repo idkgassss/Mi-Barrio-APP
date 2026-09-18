@@ -7,17 +7,26 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.saludo}>Bienvenido, hdhsuaia</Text>
-      
+
       <Text style={styles.seccionTitulo}>Resumen de Reportes</Text>
       <View style={styles.card}>
-        <View style={styles.fila}><Text>Pendientes</Text><Text>1</Text></View>
+        <View style={styles.fila}>
+          <Text>Pendientes</Text>
+          <Text>1</Text>
+        </View>
         <View style={styles.separador} />
-        <View style={styles.fila}><Text>En proceso</Text><Text>1</Text></View>
+        <View style={styles.fila}>
+          <Text>En proceso</Text>
+          <Text>1</Text>
+        </View>
         <View style={styles.separador} />
-        <View style={styles.fila}><Text>Solucionados</Text><Text>1</Text></View>
+        <View style={styles.fila}>
+          <Text>Solucionados</Text>
+          <Text>1</Text>
+        </View>
       </View>
 
-      <TouchableOpacity style={styles.btnReportar}>
+      <TouchableOpacity style={styles.btnReportar} onPress={() => router.push('/reportar/paso1')}>
         <Text style={styles.btnText}>REPORTAR PROBLEMA</Text>
       </TouchableOpacity>
     </View>
@@ -32,5 +41,5 @@ const styles = StyleSheet.create({
   fila: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 10 },
   separador: { height: 1, backgroundColor: '#EEE' },
   btnReportar: { backgroundColor: '#000', padding: 20, alignItems: 'center', marginTop: 40 },
-  btnText: { color: 'white', fontWeight: 'bold', fontSize: 16 }
+  btnText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
 });
