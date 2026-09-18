@@ -5,8 +5,16 @@ export default function RootLayout() {
     <Stack>
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      {/* Registramos tu nuevo flujo de reportes */}
       <Stack.Screen name="reportar" options={{ headerShown: false }} />
+      {/* Agregamos la ruta dinámica del detalle */}
+      <Stack.Screen
+        name="detalle/[id]"
+        options={{
+          title: 'Detalle del Reporte',
+          headerStyle: { backgroundColor: '#000' },
+          headerTintColor: '#fff',
+        }}
+      />
     </Stack>
   );
 }
