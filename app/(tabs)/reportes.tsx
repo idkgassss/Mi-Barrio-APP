@@ -1,12 +1,7 @@
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-
-const REPORTES_MOCK = [
-  { id: '1', titulo: 'Bache en la avenida', estado: 'Pendiente', fecha: '18/09/2026' },
-  { id: '2', titulo: 'Luminaria rota', estado: 'En proceso', fecha: '15/09/2026' },
-  { id: '3', titulo: 'Basural a cielo abierto', estado: 'Solucionado', fecha: '10/09/2026' },
-  { id: '4', titulo: 'Semáforo sin luz', estado: 'Pendiente', fecha: '05/09/2026' },
-];
+// Importamos tu mockData real (Ajusta la ruta si es con @/)
+import { REPORTES_MOCK } from '../../data/mockData';
 
 export default function ReportesScreen() {
   const router = useRouter();
@@ -15,19 +10,22 @@ export default function ReportesScreen() {
     <TouchableOpacity
       style={styles.card}
       onPress={() => {
+        // CORRECCIÓN: Solo enviamos el ID por parámetro para no degradar performance
         router.push({
           pathname: '/detalle/[id]',
-          params: { id: item.id, titulo: item.titulo, estado: item.estado, fecha: item.fecha },
+          params: { id: item.id },
         });
       }}
     >
       <View style={styles.cardHeader}>
         <Text style={styles.cardTitulo}>{item.titulo}</Text>
-        <Text style={styles.cardFecha}>{item.fecha}</Text>
+        <Text style={styles.cardCategoria}>{item.categoria}</Text>
       </View>
 
-      <View style={styles.badge}>
-        <Text style={styles.badgeText}>{item.estado}</Text>
+      <View
+        style={[styles.badge, item.solucionado ? styles.badgeSolucionado : styles.badgePendiente]}
+      >
+        <Text style={styles.badgeText}>{item.solucionado ? 'Solucionado' : 'Pendiente'}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -54,18 +52,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#CCC',
   },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 10,
-  },
+  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
   cardTitulo: { fontSize: 16, fontWeight: 'bold', flex: 1 },
-  cardFecha: { fontSize: 12, color: '#666', marginLeft: 10 },
-  badge: {
-    backgroundColor: '#000',
-    alignSelf: 'flex-start',
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-  },
+  cardCategoria: { fontSize: 12, color: '#666', marginLeft: 10, textTransform: 'capitalize' },
+  badge: { alignSelf: 'flex-start', paddingVertical: 5, paddingHorizontal: 10 },
+  badgePendiente: { backgroundColor: '#FF3B30' },
+  badgeSolucionado: { backgroundColor: '#34C759' },
   badgeText: { color: 'white', fontSize: 12, fontWeight: 'bold' },
 });
