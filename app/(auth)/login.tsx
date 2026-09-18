@@ -1,12 +1,30 @@
-import { View, Text, StyleSheet, ImageBackground, Image, TouchableOpacity } from 'react-native';
+import { useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ImageBackground,
+  Image,
+  TouchableOpacity,
+  TextInput,
+} from 'react-native';
 import { useRouter } from 'expo-router';
+// Importación estricta de variables de diseño
+import { Colors, Spacing, FontSize, Radius } from '@/constants/theme';
 
 export default function LoginScreen() {
   const router = useRouter();
 
-  // Mantenemos la función que destruye el historial y entra a la app (RF1)
-  const handleLogin = () => {
+  const [mostrarTarjeta, setMostrarTarjeta] = useState(false);
+  const [isLogin, setIsLogin] = useState(true);
+
+  const handleLoginFinal = () => {
     router.replace('/(tabs)');
+  };
+
+  const abrirTarjeta = (modoLogin: boolean) => {
+    setIsLogin(modoLogin);
+    setMostrarTarjeta(true);
   };
 
   return (
@@ -15,10 +33,8 @@ export default function LoginScreen() {
       style={styles.background}
       resizeMode="cover"
     >
-      {/* Capa oscura azulada para que resalte el logo y los textos */}
       <View style={styles.overlay}>
-        {/* Contenedor centralizado para el Logo */}
-        <View style={styles.logoContainer}>
+        <View style={[styles.logoContainer, mostrarTarjeta && styles.logoContainerSubido]}>
           <Image
             source={require('../../assets/logo.png')}
             style={styles.logo}
@@ -26,20 +42,75 @@ export default function LoginScreen() {
           />
         </View>
 
-        {/* Contenedor inferior para los botones */}
-        <View style={styles.bottomContainer}>
-          <TouchableOpacity style={styles.btnLogin} onPress={handleLogin}>
-            <Text style={styles.btnText}>Log In</Text>
-          </TouchableOpacity>
-
-          <View style={styles.registerContainer}>
-            <Text style={styles.textNormal}>No tenes cuenta? </Text>
-            {/* Por ahora no hace nada, luego lo conectaremos al Registro */}
-            <TouchableOpacity>
-              <Text style={styles.textLink}>Registrate</Text>
+        {!mostrarTarjeta ? (
+          /* VISTA 1: PANTALLA INICIAL */
+          <View style={styles.bottomContainer}>
+            <TouchableOpacity style={styles.botonPrincipal} onPress={() => abrirTarjeta(true)}>
+              <Text style={styles.botonPrincipalTexto}>Log In</Text>
             </TouchableOpacity>
+
+            <View style={styles.footerInicial}>
+              <Text style={styles.textoFooterInicial}>No tenes cuenta? </Text>
+              <TouchableOpacity onPress={() => abrirTarjeta(false)}>
+                <Text style={styles.linkFooterInicial}>Registrate</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
+        ) : (
+          /* VISTA 2: TARJETA BLANCA (Ahora envuelta en cardWrapper para centrarla) */
+          <View style={styles.cardWrapper}>
+            <View style={styles.card}>
+              <View style={styles.toggleContainer}>
+                <TouchableOpacity
+                  style={[styles.toggleButton, isLogin && styles.toggleButtonActive]}
+                  onPress={() => setIsLogin(true)}
+                >
+                  <Text style={[styles.toggleText, isLogin && styles.toggleTextActive]}>
+                    Log In
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.toggleButton, !isLogin && styles.toggleButtonActive]}
+                  onPress={() => setIsLogin(false)}
+                >
+                  <Text style={[styles.toggleText, !isLogin && styles.toggleTextActive]}>
+                    Sign Up
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              <Text style={styles.welcomeText}>Bienvenido a MI Barrio</Text>
+
+              <TextInput
+                style={styles.input}
+                placeholder="E-mail"
+                placeholderTextColor={Colors.text}
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Password"
+                placeholderTextColor={Colors.text}
+                secureTextEntry
+              />
+
+              <TouchableOpacity style={styles.actionButton} onPress={handleLoginFinal}>
+                <Text style={styles.actionButtonText}>{isLogin ? 'Log In' : 'Sign Up'}</Text>
+              </TouchableOpacity>
+
+              <View style={styles.footerTarjeta}>
+                <Text style={styles.textoFooterTarjeta}>
+                  {isLogin ? 'No tenes cuenta? ' : 'Ya tenes cuenta? '}
+                </Text>
+                <TouchableOpacity onPress={() => setIsLogin(!isLogin)}>
+                  <Text style={styles.linkFooterTarjeta}>{isLogin ? 'Registrate' : 'Ingresá'}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        )}
       </View>
     </ImageBackground>
   );
@@ -53,51 +124,138 @@ const styles = StyleSheet.create({
   },
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(28, 56, 111, 0.7)', // Tono azul oscuro semi-transparente
-    justifyContent: 'space-between',
-    paddingVertical: 60,
-    paddingHorizontal: 20,
+    backgroundColor: 'rgba(28, 56, 111, 0.7)',
+    paddingHorizontal: Spacing.lg,
+    // Un margen general en la base para que nada toque el borde del celular jamás
+    paddingBottom: Spacing.xxl,
   },
+
   logoContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  logo: {
-    width: 280, // Ajustado para que el logo se vea amplio y legible
-    height: 120,
+  logoContainerSubido: {
+    flex: 0,
+    marginTop: Spacing.xxl * 2, // Lo despega del borde superior de la pantalla
+    marginBottom: Spacing.sm,
   },
+  logo: {
+    width: 250,
+    height: 90,
+  },
+
   bottomContainer: {
     width: '100%',
     alignItems: 'center',
-    paddingBottom: 30,
   },
-  btnLogin: {
-    backgroundColor: '#1C64F2', // Azul brillante del botón
+  botonPrincipal: {
+    backgroundColor: Colors.primary,
     width: '100%',
-    paddingVertical: 16,
-    borderRadius: 30, // Bordes en forma de píldora
+    paddingVertical: Spacing.md,
+    borderRadius: Radius.lg,
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: Spacing.md,
     borderWidth: 1,
-    borderColor: '#000', // Borde oscuro sutil
+    borderColor: '#000',
   },
-  btnText: {
-    color: '#FFFFFF',
-    fontSize: 18,
+  botonPrincipalTexto: {
+    color: Colors.surface,
+    fontSize: FontSize.lg,
     fontWeight: 'bold',
   },
-  registerContainer: {
+  footerInicial: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  textNormal: {
-    color: '#E5E7EB',
-    fontSize: 15,
+  textoFooterInicial: {
+    color: Colors.surface,
+    fontSize: FontSize.md,
   },
-  textLink: {
-    color: '#3B82F6',
-    fontSize: 15,
+  linkFooterInicial: {
+    color: Colors.primary,
+    fontSize: FontSize.md,
+    textDecorationLine: 'underline',
+  },
+
+  /* --- NUEVO CONTENEDOR PARA CENTRAR LA TARJETA --- */
+  cardWrapper: {
+    flex: 1,
+    justifyContent: 'center', // Alinea la tarjeta verticalmente en el medio
+  },
+  card: {
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.lg,
+    padding: Spacing.xl,
+    width: '100%',
+    borderWidth: 2,
+    borderColor: Colors.primary,
+  },
+  /* ------------------------------------------------ */
+
+  toggleContainer: {
+    flexDirection: 'row',
+    backgroundColor: Colors.background,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: Colors.text,
+    marginBottom: Spacing.xl,
+  },
+  toggleButton: {
+    flex: 1,
+    paddingVertical: Spacing.md,
+    borderRadius: Radius.lg,
+    alignItems: 'center',
+  },
+  toggleButtonActive: {
+    backgroundColor: Colors.primary,
+  },
+  toggleText: {
+    color: Colors.text,
+    fontSize: FontSize.md,
+  },
+  toggleTextActive: {
+    color: Colors.surface,
+  },
+  welcomeText: {
+    fontSize: FontSize.lg,
+    color: Colors.text,
+    marginBottom: Spacing.lg,
+  },
+  input: {
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.text,
+    paddingVertical: Spacing.sm,
+    marginBottom: Spacing.lg,
+    fontSize: FontSize.md,
+    color: Colors.text,
+  },
+  actionButton: {
+    backgroundColor: Colors.primary,
+    borderRadius: Radius.lg,
+    paddingVertical: Spacing.md,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.text,
+    marginTop: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  actionButtonText: {
+    color: Colors.surface,
+    fontSize: FontSize.lg,
+    fontWeight: 'bold',
+  },
+  footerTarjeta: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  textoFooterTarjeta: {
+    color: Colors.text,
+    fontSize: FontSize.sm,
+  },
+  linkFooterTarjeta: {
+    color: Colors.primary,
+    fontSize: FontSize.sm,
     textDecorationLine: 'underline',
   },
 });

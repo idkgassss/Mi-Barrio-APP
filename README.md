@@ -49,26 +49,4 @@ mi-barrio-app/
 Lo que quedó **fuera** a propósito, tal como lo definieron ustedes en el MoSCoW (Won't): edición de
 perfil, notificaciones push, reapertura/cancelación de reportes, moderación por IA.
 
-## Por qué no arranca con Firebase ya conectado
-
-El profe confirmó que la base de datos no tiene que ser Firebase sí o sí. Para tener un MVP
-**estable desde el primer `npx expo start`**, sin depender de que alguien configure un proyecto de
-Firebase antes de poder probar la app, el estado se maneja con Zustand + AsyncStorage
-(`stores/useUsuarioStore.ts` y `stores/useReportesStore.ts`).
-
-Firebase sigue siendo la opción recomendada (así lo dice su propia documentación, sección 3) y ya
-está dejado listo para conectar sin tocar las pantallas:
-
-- `services/firebase.ts`: inicialización, calcada de Clase 5.
-- `services/firestoreReportes.ts`: capa de servicios con `getAll`, `getById`, `crear`,
-  `avanzarEstado`, lista para usar con `onSnapshot` — trae los pasos de migración comentados
-  arriba del archivo.
-- Cada punto del código donde algo se reemplaza por Firebase tiene un comentario `// TODO Firebase`.
-
-## Próximos pasos técnicos sugeridos
-
-1. Conectar Firebase Auth real (reemplaza el login "fake" de `useUsuarioStore.ts`).
-2. Conectar Firestore siguiendo `services/firestoreReportes.ts` + Cloud Storage para las fotos.
-3. Pantalla de selección manual de ubicación en un mapa (hoy el respaldo es un campo de texto).
-4. Mover el avance de estado (`avanzarEstado`) a un panel de "operador municipal" o a la consola de
-   Firebase, ya que en el MVP actual no hay un rol que lo dispare desde la app del vecino.
+## Continuara...
