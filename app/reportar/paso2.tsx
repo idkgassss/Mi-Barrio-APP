@@ -1,51 +1,132 @@
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useRouter, Stack } from 'expo-router';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Colors, Spacing, FontSize, Radius } from '@/constants/theme';
 
 export default function Paso2Screen() {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
+
+  const [fotoTomada, setFotoTomada] = useState(false);
 
   const handleSiguiente = () => {
     router.push('/reportar/paso3');
   };
 
-  return (
-    <View style={[styles.container, { paddingBottom: insets.bottom + 20 }]}>
-      <Text style={styles.titulo}>Subí fotos del problema</Text>
+  const simularSacarFoto = () => {
+    setFotoTomada(true);
+    alert('¡Cámara activada! (Simulación)');
+  };
 
-      <View style={styles.gridFotos}>
-        <View style={styles.cajaFoto}>
-          <Text>+</Text>
-        </View>
-        <View style={styles.cajaFoto}>
-          <Text>+</Text>
-        </View>
-        <View style={styles.cajaFoto}>
-          <Text>+</Text>
-        </View>
+  return (
+    <View style={styles.container}>
+      {/* Esto oculta el encabezado automático por defecto */}
+      <Stack.Screen options={{ headerShown: false }} />
+
+      {/* HEADER CUSTOM */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={28} color={Colors.text} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Nuevo reporte</Text>
       </View>
 
-      <TouchableOpacity style={styles.btnSiguiente} onPress={handleSiguiente}>
-        <Text style={styles.btnText}>Siguiente -{'>'}</Text>
-      </TouchableOpacity>
+      {/* CONTENIDO CENTRAL */}
+      <View style={styles.content}>
+        {/* Cuadrado gigante para la foto */}
+        <View style={styles.imagePlaceholder}>
+          <MaterialCommunityIcons
+            name={fotoTomada ? 'image-check' : 'image'}
+            size={100}
+            color="rgba(0,0,0,0.6)"
+          />
+        </View>
+
+        {/* Botón Circular */}
+        <TouchableOpacity style={styles.roundButton} onPress={simularSacarFoto}>
+          <Text style={styles.roundButtonText}>SACAR FOTO</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* FOOTER */}
+      <View style={styles.footer}>
+        <TouchableOpacity style={styles.nextButton} onPress={handleSiguiente}>
+          <Text style={styles.nextButtonText}>Siguiente</Text>
+          <Ionicons name="arrow-forward" size={20} color={Colors.surface} style={styles.nextIcon} />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: '#F5F5F5' },
-  titulo: { fontSize: 20, fontWeight: 'bold', marginBottom: 20 },
-  gridFotos: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 },
-  cajaFoto: {
-    width: 100,
-    height: 100,
-    backgroundColor: '#E0E0E0',
+  container: {
+    flex: 1,
+    backgroundColor: Colors.background,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingTop: Spacing.xxl * 1.5,
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.lg,
+  },
+  backButton: {
+    marginRight: Spacing.md,
+  },
+  headerTitle: {
+    fontSize: FontSize.xl,
+    color: Colors.text,
+  },
+  content: {
+    flex: 1,
+    alignItems: 'center',
+    paddingHorizontal: Spacing.xl,
+    paddingTop: Spacing.xl,
+  },
+  imagePlaceholder: {
+    width: '100%',
+    aspectRatio: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#CCC',
+    marginBottom: Spacing.xxl * 2,
   },
-  btnSiguiente: { backgroundColor: '#000', padding: 15, alignItems: 'center', marginTop: 'auto' },
-  btnText: { color: 'white', fontWeight: 'bold' },
+  roundButton: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: Colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 4,
+  },
+  roundButtonText: {
+    color: Colors.surface,
+    fontSize: FontSize.sm,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  footer: {
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.md,
+    paddingBottom: Spacing.xxl * 1.5,
+    backgroundColor: Colors.background,
+  },
+  nextButton: {
+    backgroundColor: Colors.primary,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: Spacing.md,
+    borderRadius: Radius.lg,
+  },
+  nextButtonText: {
+    color: Colors.surface,
+    fontSize: FontSize.lg,
+    fontWeight: 'bold',
+  },
+  nextIcon: {
+    marginLeft: Spacing.sm,
+  },
 });

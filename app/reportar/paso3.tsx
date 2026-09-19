@@ -1,48 +1,262 @@
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
+  Modal,
+  FlatList,
+} from 'react-native';
+import { useRouter, Stack } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+// Importación estricta de variables de diseño
+import { Colors, Spacing, FontSize, Radius } from '@/constants/theme';
+
+const OPCIONES_TIEMPO = [
+  'Hace unos días',
+  'Hace una semana',
+  'Hace un mes',
+  'Hace más de un mes',
+  'No estoy seguro',
+];
 
 export default function Paso3Screen() {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
+
+  // Estados del formulario
+  const [descripcion, setDescripcion] = useState('');
+  const [tiempoSeleccionado, setTiempoSeleccionado] = useState<string | null>(null);
+
+  // Estado para el modal del selector falso (Dropdown)
+  const [modalVisible, setModalVisible] = useState(false);
 
   const handleEnviar = () => {
+    // Al finalizar el reporte, saltamos a la pantalla de éxito
     router.push('/reportar/exito');
   };
 
   return (
-    <View style={[styles.container, { paddingBottom: insets.bottom + 20 }]}>
-      <Text style={styles.titulo}>Detalles del problema</Text>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <Stack.Screen options={{ headerShown: false }} />
 
-      <Text style={styles.label}>Ubicación</Text>
-      <TextInput style={styles.input} placeholder="Escribí la dirección..." />
+      {/* HEADER CUSTOM*/}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={28} color={Colors.text} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Nuevo reporte</Text>
+      </View>
 
-      <Text style={styles.label}>Descripción</Text>
-      <TextInput
-        style={[styles.input, styles.textArea]}
-        placeholder="Describí brevemente el problema..."
-        multiline
-      />
+      {/*CONTENIDO CENTRAL */}
+      <View style={styles.content}>
+        <Text style={styles.sectionTitle}>Contanos más detalles</Text>
 
-      <TouchableOpacity style={styles.btnEnviar} onPress={handleEnviar}>
-        <Text style={styles.btnText}>ENVIAR REPORTE</Text>
-      </TouchableOpacity>
-    </View>
+        {/* Caja de Texto Multilínea con Contador */}
+        <View style={styles.textAreaContainer}>
+          <TextInput
+            style={styles.textArea}
+            placeholder="Describe el problema..."
+            placeholderTextColor="rgba(0,0,0,0.5)"
+            multiline={true}
+            numberOfLines={6}
+            maxLength={400}
+            textAlignVertical="top" // Fija el texto arriba en Android
+            value={descripcion}
+            onChangeText={setDescripcion}
+          />
+          <Text style={styles.charCounter}>{descripcion.length}/400</Text>
+        </View>
+
+        {/* Selector de Tiempo (Dropdown Custom) */}
+        <Text style={styles.dropdownLabel}>¿Desde cuándo existe este problema?</Text>
+
+        <TouchableOpacity style={styles.dropdownButton} onPress={() => setModalVisible(true)}>
+          <Text style={[styles.dropdownText, !tiempoSeleccionado && styles.dropdownPlaceholder]}>
+            {tiempoSeleccionado ? tiempoSeleccionado : 'Seleccionar'}
+          </Text>
+          <Ionicons name="chevron-down" size={20} color={Colors.text} />
+        </TouchableOpacity>
+      </View>
+
+      {/*FOOTER FIJO (Botón Enviar alineado a la derecha) */}
+      <View style={styles.footer}>
+        <TouchableOpacity
+          style={[
+            styles.submitButton,
+            (!descripcion || !tiempoSeleccionado) && styles.submitButtonDisabled,
+          ]}
+          onPress={handleEnviar}
+          disabled={!descripcion || !tiempoSeleccionado} // Obliga a llenar los datos para enviar
+        >
+          <Text style={styles.submitButtonText}>Enviar reporte</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/*MODAL PARA EL SELECTOR DE TIEMPO */}
+      <Modal visible={modalVisible} transparent={true} animationType="fade">
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setModalVisible(false)}
+        >
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Seleccionar antigüedad</Text>
+            <FlatList
+              data={OPCIONES_TIEMPO}
+              keyExtractor={(item) => item}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.modalOption}
+                  onPress={() => {
+                    setTiempoSeleccionado(item);
+                    setModalVisible(false);
+                  }}
+                >
+                  <Text style={styles.modalOptionText}>{item}</Text>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: '#F5F5F5' },
-  titulo: { fontSize: 20, fontWeight: 'bold', marginBottom: 20 },
-  label: { fontSize: 14, fontWeight: '600', marginBottom: 5 },
-  input: {
-    backgroundColor: 'white',
-    borderWidth: 1,
-    borderColor: '#CCC',
-    padding: 10,
-    marginBottom: 15,
+  container: {
+    flex: 1,
+    backgroundColor: Colors.background,
   },
-  textArea: { height: 100, textAlignVertical: 'top' },
-  btnEnviar: { backgroundColor: '#000', padding: 15, alignItems: 'center', marginTop: 'auto' },
-  btnText: { color: 'white', fontWeight: 'bold' },
+
+  // -- Header --
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingTop: Spacing.xxl * 1.5,
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.lg,
+  },
+  backButton: {
+    marginRight: Spacing.md,
+  },
+  headerTitle: {
+    fontSize: FontSize.xl,
+    color: Colors.text,
+  },
+
+  // -- Contenido Principal --
+  content: {
+    flex: 1,
+    paddingHorizontal: Spacing.xl,
+    paddingTop: Spacing.lg,
+  },
+  sectionTitle: {
+    fontSize: FontSize.lg,
+    color: Colors.text,
+    marginBottom: Spacing.lg,
+  },
+
+  // -- Text Area --
+  textAreaContainer: {
+    backgroundColor: 'rgba(0, 0, 0, 0.1)', // Gris claro idéntico al diseño
+    borderRadius: Radius.sm, // Bordes menos redondeados según maqueta
+    padding: Spacing.md,
+    height: 180, // Altura fija generosa
+    marginBottom: Spacing.xl,
+  },
+  textArea: {
+    flex: 1,
+    fontSize: FontSize.md,
+    color: Colors.text,
+  },
+  charCounter: {
+    position: 'absolute',
+    bottom: Spacing.sm,
+    right: Spacing.sm,
+    fontSize: FontSize.sm,
+    color: 'rgba(0,0,0,0.5)',
+  },
+
+  // -- Dropdown --
+  dropdownLabel: {
+    fontSize: FontSize.md,
+    color: Colors.text,
+    marginBottom: Spacing.sm,
+  },
+  dropdownButton: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.md,
+    borderRadius: Radius.sm,
+  },
+  dropdownText: {
+    fontSize: FontSize.md,
+    color: Colors.text,
+  },
+  dropdownPlaceholder: {
+    color: 'rgba(0,0,0,0.6)',
+  },
+
+  // -- Footer y Botón Enviar --
+  footer: {
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.md,
+    paddingBottom: Spacing.xxl * 1.5,
+    backgroundColor: Colors.background,
+    alignItems: 'flex-end', // Alinea el botón a la derecha como en tu diseño
+  },
+  submitButton: {
+    backgroundColor: Colors.primary,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.xl, // Lo hace tipo "píldora" ancha
+    borderRadius: 30, // Redondeado total
+  },
+  submitButtonDisabled: {
+    opacity: 0.5,
+  },
+  submitButtonText: {
+    color: Colors.surface,
+    fontSize: FontSize.md,
+    fontWeight: 'bold',
+  },
+
+  // -- Estilos del Modal (Selector Falso) --
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: '80%',
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.lg,
+    padding: Spacing.lg,
+    maxHeight: '60%',
+  },
+  modalTitle: {
+    fontSize: FontSize.lg,
+    fontWeight: 'bold',
+    marginBottom: Spacing.md,
+    color: Colors.text,
+  },
+  modalOption: {
+    paddingVertical: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.1)',
+  },
+  modalOptionText: {
+    fontSize: FontSize.md,
+    color: Colors.text,
+  },
 });

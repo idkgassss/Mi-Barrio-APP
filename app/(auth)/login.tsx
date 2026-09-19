@@ -46,7 +46,7 @@ export default function LoginScreen() {
           /* VISTA 1: PANTALLA INICIAL */
           <View style={styles.bottomContainer}>
             <TouchableOpacity style={styles.botonPrincipal} onPress={() => abrirTarjeta(true)}>
-              <Text style={styles.botonPrincipalTexto}>Log In</Text>
+              <Text style={styles.botonPrincipalTexto}>Iniciar Sesion</Text>
             </TouchableOpacity>
 
             <View style={styles.footerInicial}>
@@ -66,7 +66,7 @@ export default function LoginScreen() {
                   onPress={() => setIsLogin(true)}
                 >
                   <Text style={[styles.toggleText, isLogin && styles.toggleTextActive]}>
-                    Log In
+                    Iniciar Secion
                   </Text>
                 </TouchableOpacity>
 
@@ -75,7 +75,7 @@ export default function LoginScreen() {
                   onPress={() => setIsLogin(false)}
                 >
                   <Text style={[styles.toggleText, !isLogin && styles.toggleTextActive]}>
-                    Sign Up
+                    Registrarse
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -91,13 +91,15 @@ export default function LoginScreen() {
               />
               <TextInput
                 style={styles.input}
-                placeholder="Password"
+                placeholder="Contraseña"
                 placeholderTextColor={Colors.text}
                 secureTextEntry
               />
 
               <TouchableOpacity style={styles.actionButton} onPress={handleLoginFinal}>
-                <Text style={styles.actionButtonText}>{isLogin ? 'Log In' : 'Sign Up'}</Text>
+                <Text style={styles.actionButtonText}>
+                  {isLogin ? 'Iniciar Sesion' : 'Registrarse'}
+                </Text>
               </TouchableOpacity>
 
               <View style={styles.footerTarjeta}>
@@ -191,7 +193,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: Colors.primary,
   },
-  /* ------------------------------------------------ */
 
   toggleContainer: {
     flexDirection: 'row',
