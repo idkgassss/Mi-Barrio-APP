@@ -66,7 +66,7 @@ export default function LoginScreen() {
                   onPress={() => setIsLogin(true)}
                 >
                   <Text style={[styles.toggleText, isLogin && styles.toggleTextActive]}>
-                    Iniciar Secion
+                    Iniciar Sesion
                   </Text>
                 </TouchableOpacity>
 

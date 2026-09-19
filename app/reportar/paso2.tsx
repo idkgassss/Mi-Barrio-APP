@@ -20,7 +20,6 @@ export default function Paso2Screen() {
 
   return (
     <View style={styles.container}>
-      {/* Esto oculta el encabezado automático por defecto */}
       <Stack.Screen options={{ headerShown: false }} />
 
       {/* HEADER CUSTOM */}
@@ -33,7 +32,6 @@ export default function Paso2Screen() {
 
       {/* CONTENIDO CENTRAL */}
       <View style={styles.content}>
-        {/* Cuadrado gigante para la foto */}
         <View style={styles.imagePlaceholder}>
           <MaterialCommunityIcons
             name={fotoTomada ? 'image-check' : 'image'}
@@ -42,10 +40,16 @@ export default function Paso2Screen() {
           />
         </View>
 
-        {/* Botón Circular */}
         <TouchableOpacity style={styles.roundButton} onPress={simularSacarFoto}>
-          <Text style={styles.roundButtonText}>SACAR FOTO</Text>
+          <Text style={styles.roundButtonText}>{fotoTomada ? 'VOLVER A SACAR' : 'SACAR FOTO'}</Text>
         </TouchableOpacity>
+
+        {/* NUEVO BOTÓN PARA SALTEAR (Solo se muestra si no sacó foto) */}
+        {!fotoTomada && (
+          <TouchableOpacity style={styles.skipButton} onPress={handleSiguiente}>
+            <Text style={styles.skipButtonText}>Saltear este paso</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* FOOTER */}
@@ -107,6 +111,18 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
   },
+
+  // -- Estilos del nuevo botón "Saltear" --
+  skipButton: {
+    marginTop: Spacing.xl, // Lo separa un poco del botón redondo
+    padding: Spacing.sm,
+  },
+  skipButtonText: {
+    color: 'rgba(0,0,0,0.5)', // Un gris sutil para que no compita con el botón principal
+    fontSize: FontSize.md,
+    textDecorationLine: 'underline',
+  },
+
   footer: {
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.md,

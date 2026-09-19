@@ -12,7 +12,6 @@ import {
 } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-// Importación estricta de variables de diseño
 import { Colors, Spacing, FontSize, Radius } from '@/constants/theme';
 
 const OPCIONES_TIEMPO = [
@@ -26,16 +25,21 @@ const OPCIONES_TIEMPO = [
 export default function Paso3Screen() {
   const router = useRouter();
 
-  // Estados del formulario
   const [descripcion, setDescripcion] = useState('');
   const [tiempoSeleccionado, setTiempoSeleccionado] = useState<string | null>(null);
-
-  // Estado para el modal del selector falso (Dropdown)
   const [modalVisible, setModalVisible] = useState(false);
 
+  // NUEVO: Estado para la ubicación
+  const [ubicacion, setUbicacion] = useState<string | null>(null);
+
   const handleEnviar = () => {
-    // Al finalizar el reporte, saltamos a la pantalla de éxito
     router.push('/reportar/exito');
+  };
+
+  // NUEVO: Función para simular la captura del GPS
+  const simularObtenerUbicacion = () => {
+    // Simulamos un pequeño tiempo de carga y seteamos una dirección de prueba
+    setUbicacion('Presidente Derqui, Buenos Aires');
   };
 
   return (
@@ -45,7 +49,7 @@ export default function Paso3Screen() {
     >
       <Stack.Screen options={{ headerShown: false }} />
 
-      {/* HEADER CUSTOM*/}
+      {/* HEADER */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={28} color={Colors.text} />
@@ -53,11 +57,10 @@ export default function Paso3Screen() {
         <Text style={styles.headerTitle}>Nuevo reporte</Text>
       </View>
 
-      {/*CONTENIDO CENTRAL */}
+      {/* CONTENIDO CENTRAL */}
       <View style={styles.content}>
         <Text style={styles.sectionTitle}>Contanos más detalles</Text>
 
-        {/* Caja de Texto Multilínea con Contador */}
         <View style={styles.textAreaContainer}>
           <TextInput
             style={styles.textArea}
@@ -66,16 +69,28 @@ export default function Paso3Screen() {
             multiline={true}
             numberOfLines={6}
             maxLength={400}
-            textAlignVertical="top" // Fija el texto arriba en Android
+            textAlignVertical="top"
             value={descripcion}
             onChangeText={setDescripcion}
           />
           <Text style={styles.charCounter}>{descripcion.length}/400</Text>
         </View>
 
-        {/* Selector de Tiempo (Dropdown Custom) */}
-        <Text style={styles.dropdownLabel}>¿Desde cuándo existe este problema?</Text>
+        {/* NUEVO: Botón de Ubicación */}
+        <Text style={styles.dropdownLabel}>Ubicación del problema</Text>
+        <TouchableOpacity style={styles.locationButton} onPress={simularObtenerUbicacion}>
+          <Ionicons
+            name={ubicacion ? 'location' : 'location-outline'}
+            size={20}
+            color={ubicacion ? Colors.primary : Colors.text}
+          />
+          <Text style={[styles.locationText, !ubicacion && styles.dropdownPlaceholder]}>
+            {ubicacion ? ubicacion : 'Tocar para obtener mi ubicación'}
+          </Text>
+        </TouchableOpacity>
 
+        {/* Dropdown de Antigüedad */}
+        <Text style={styles.dropdownLabel}>¿Desde cuándo existe este problema?</Text>
         <TouchableOpacity style={styles.dropdownButton} onPress={() => setModalVisible(true)}>
           <Text style={[styles.dropdownText, !tiempoSeleccionado && styles.dropdownPlaceholder]}>
             {tiempoSeleccionado ? tiempoSeleccionado : 'Seleccionar'}
@@ -84,21 +99,22 @@ export default function Paso3Screen() {
         </TouchableOpacity>
       </View>
 
-      {/*FOOTER FIJO (Botón Enviar alineado a la derecha) */}
+      {/* FOOTER */}
       <View style={styles.footer}>
         <TouchableOpacity
           style={[
             styles.submitButton,
-            (!descripcion || !tiempoSeleccionado) && styles.submitButtonDisabled,
+            // Ahora requiere los 3 campos: descripción, tiempo Y ubicación
+            (!descripcion || !tiempoSeleccionado || !ubicacion) && styles.submitButtonDisabled,
           ]}
           onPress={handleEnviar}
-          disabled={!descripcion || !tiempoSeleccionado} // Obliga a llenar los datos para enviar
+          disabled={!descripcion || !tiempoSeleccionado || !ubicacion}
         >
           <Text style={styles.submitButtonText}>Enviar reporte</Text>
         </TouchableOpacity>
       </View>
 
-      {/*MODAL PARA EL SELECTOR DE TIEMPO */}
+      {/* MODAL SELECTOR */}
       <Modal visible={modalVisible} transparent={true} animationType="fade">
         <TouchableOpacity
           style={styles.modalOverlay}
@@ -134,8 +150,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-
-  // -- Header --
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -150,8 +164,6 @@ const styles = StyleSheet.create({
     fontSize: FontSize.xl,
     color: Colors.text,
   },
-
-  // -- Contenido Principal --
   content: {
     flex: 1,
     paddingHorizontal: Spacing.xl,
@@ -162,13 +174,11 @@ const styles = StyleSheet.create({
     color: Colors.text,
     marginBottom: Spacing.lg,
   },
-
-  // -- Text Area --
   textAreaContainer: {
-    backgroundColor: 'rgba(0, 0, 0, 0.1)', // Gris claro idéntico al diseño
-    borderRadius: Radius.sm, // Bordes menos redondeados según maqueta
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+    borderRadius: Radius.sm,
     padding: Spacing.md,
-    height: 180, // Altura fija generosa
+    height: 150, // Lo achiqué un poquito para que entre la ubicación sin empujar todo
     marginBottom: Spacing.xl,
   },
   textArea: {
@@ -183,8 +193,6 @@ const styles = StyleSheet.create({
     fontSize: FontSize.sm,
     color: 'rgba(0,0,0,0.5)',
   },
-
-  // -- Dropdown --
   dropdownLabel: {
     fontSize: FontSize.md,
     color: Colors.text,
@@ -198,6 +206,7 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.md,
     borderRadius: Radius.sm,
+    marginBottom: Spacing.xl, // Separación agregada
   },
   dropdownText: {
     fontSize: FontSize.md,
@@ -207,19 +216,34 @@ const styles = StyleSheet.create({
     color: 'rgba(0,0,0,0.6)',
   },
 
-  // -- Footer y Botón Enviar --
+  // -- Estilos para el nuevo botón de ubicación --
+  locationButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.md,
+    borderRadius: Radius.sm,
+    marginBottom: Spacing.xl,
+  },
+  locationText: {
+    fontSize: FontSize.md,
+    color: Colors.text,
+    marginLeft: Spacing.sm, // Separa el texto del ícono de GPS
+  },
+
   footer: {
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.md,
     paddingBottom: Spacing.xxl * 1.5,
     backgroundColor: Colors.background,
-    alignItems: 'flex-end', // Alinea el botón a la derecha como en tu diseño
+    alignItems: 'flex-end',
   },
   submitButton: {
     backgroundColor: Colors.primary,
     paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.xl, // Lo hace tipo "píldora" ancha
-    borderRadius: 30, // Redondeado total
+    paddingHorizontal: Spacing.xl,
+    borderRadius: 30,
   },
   submitButtonDisabled: {
     opacity: 0.5,
@@ -229,8 +253,6 @@ const styles = StyleSheet.create({
     fontSize: FontSize.md,
     fontWeight: 'bold',
   },
-
-  // -- Estilos del Modal (Selector Falso) --
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
