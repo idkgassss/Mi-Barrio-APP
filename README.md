@@ -9,11 +9,8 @@ npm install
 npx expo start
 ```
 
-Escaneá el QR con Expo Go. No hace falta configurar Firebase para probar la app: los reportes se
-guardan localmente en el dispositivo (AsyncStorage) y arrancan con 3 reportes de ejemplo.
-
-Permisos que va a pedir la primera vez: **cámara** (paso 2 del wizard) y **ubicación** (paso 1 del
-wizard, para geolocalizar el reporte).
+Escaneá el QR con Expo Go. No hace falta configurar Firebase para probar la app: los reportes se guardan localmente en el dispositivo (AsyncStorage) y arrancan con 3 reportes de ejemplo.
+Permisos que va a pedir la primera vez: **cámara** (paso 2 del wizard) y **ubicación** (paso 1 del wizard, para geolocalizar el reporte).
 
 ## Estructura del proyecto
 
@@ -45,8 +42,5 @@ mi-barrio-app/
 - "Mis reportes" (lista), "Detalles del reporte" con línea de tiempo de seguimiento.
 - Mapa de reportes con pines coloreados por estado (react-native-maps), sin datos del emisor.
 - Perfil con menú de opciones y cerrar sesión.
-
-Lo que quedó **fuera** a propósito, tal como lo definieron ustedes en el MoSCoW (Won't): edición de
-perfil, notificaciones push, reapertura/cancelación de reportes, moderación por IA.
 
 ## Continuara...
