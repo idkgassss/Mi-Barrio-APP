@@ -1,3 +1,4 @@
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView } from 'react-native';
 import { Tabs, useRouter } from 'expo-router';
 // Importamos Ionicons para la hamburguesa y la campana (viene preinstalado en Expo)
@@ -7,6 +8,16 @@ import { Colors, Spacing, FontSize, Radius } from '@/constants/theme';
 
 export default function HomeScreen() {
   const router = useRouter();
+
+  // NUEVO: Lanzar el tutorial automáticamente al cargar la pantalla de inicio
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      // Usamos router.push para que la pantalla del tutorial se apile por encima
+      router.push('/tutorial');
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, []); // El array vacío [] asegura que esto solo se ejecute una vez al montar
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
