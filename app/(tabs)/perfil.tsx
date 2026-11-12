@@ -1,115 +1,162 @@
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Ionicons, FontAwesome5, MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
 export default function PerfilScreen() {
   const router = useRouter();
 
-  const handleCerrarSesion = () => {
-    // replace nos expulsa al login y borra la memoria de navegación
-    router.replace('/(auth)/login');
-  };
-
   return (
     <View style={styles.container}>
-fix/parametros-ruta
-      <Text style={styles.titulo}>[ pinta un fuchibol? ]</Text>
-
-      {/* Cabecera con datos del usuario */}
+      {/* 1. Encabezado */}
       <View style={styles.header}>
-        <View style={styles.avatarCaja}>
-          <Text style={styles.avatarTexto}>JD</Text>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={28} color="#000" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Perfil</Text>
+        <View style={{ width: 28 }} /> {/* Espaciador invisible para centrar el texto */}
+      </View>
+
+      {/* 2. Sección del Avatar */}
+      <View style={styles.profileSection}>
+        <View style={styles.avatarContainer}>
+          <FontAwesome5 name="user-circle" size={110} color="#000" />
+          <View style={styles.cameraBadge}>
+            <Ionicons name="camera" size={14} color="#FFF" />
+          </View>
         </View>
-        <Text style={styles.nombre}>Juan Doe</Text>
-        <Text style={styles.email}>juan.doe@vecino.com</Text>
+        <Text style={styles.name}>Usuario Ejemplo</Text>
+        <Text style={styles.email}>usuario@gmail.com</Text>
       </View>
 
-      {/* Opciones del perfil */}
-      <View style={styles.opcionesCaja}>
-        <TouchableOpacity style={styles.btnOpcion}>
-          <Text style={styles.textoOpcion}>Mis Reportes</Text>
+      <View style={styles.divider} />
+
+      {/* 3. Menú de Opciones */}
+      <View style={styles.menuContainer}>
+        <TouchableOpacity style={styles.menuItem}>
+          <View style={styles.menuItemLeft}>
+            <Ionicons name="person" size={22} color="#000" />
+            <Text style={styles.menuItemText}>Mis datos</Text>
+          </View>
+          <MaterialIcons name="keyboard-arrow-right" size={24} color="#000" />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.btnOpcion}>
-          <Text style={styles.textoOpcion}>Configuración de la cuenta</Text>
+        <TouchableOpacity style={styles.menuItem}>
+          <View style={styles.menuItemLeft}>
+            <MaterialIcons name="lock" size={22} color="#000" />
+            <Text style={styles.menuItemText}>Cambiar contraseña</Text>
+          </View>
+          <MaterialIcons name="keyboard-arrow-right" size={24} color="#000" />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.btnOpcion}>
-          <Text style={styles.textoOpcion}>Ayuda y Soporte</Text>
+        <View style={styles.divider} />
+
+        <TouchableOpacity style={styles.menuItem}>
+          <View style={styles.menuItemLeft}>
+            <MaterialIcons name="notifications" size={22} color="#000" />
+            <Text style={styles.menuItemText}>Notificaciones</Text>
+          </View>
+          <MaterialIcons name="keyboard-arrow-right" size={24} color="#000" />
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.menuItem}>
+          <View style={styles.menuItemLeft}>
+            <MaterialIcons name="help" size={22} color="#000" />
+            <Text style={styles.menuItemText}>Ayuda y soporte</Text>
+          </View>
+          <MaterialIcons name="keyboard-arrow-right" size={24} color="#000" />
+        </TouchableOpacity>
+
+        <View style={styles.divider} />
+
+        {/* Botón de Cerrar Sesión */}
+        <TouchableOpacity 
+          style={styles.menuItem} 
+          onPress={() => router.replace('/(auth)/login')}
+        >
+          <View style={styles.menuItemLeft}>
+            <MaterialIcons name="logout" size={22} color="#000" />
+            <Text style={styles.menuItemText}>Cerrar sesión</Text>
+          </View>
+          <MaterialIcons name="keyboard-arrow-right" size={24} color="#000" />
         </TouchableOpacity>
       </View>
-
-      {/* Botón destructivo de salir */}
-      <TouchableOpacity style={styles.btnSalir} onPress={handleCerrarSesion}>
-        <Text style={styles.btnSalirTexto}>CERRAR SESIÓN</Text>
-      </TouchableOpacity>
-main
     </View>
   );
 }
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    backgroundColor: '#F5F5F5',
+  container: { 
+    flex: 1, 
+    backgroundColor: '#FFF' 
   },
-  header: {
-    alignItems: 'center',
-    marginTop: 30,
-    marginBottom: 40,
+  header: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'space-between', 
+    paddingHorizontal: 20, 
+    paddingTop: 50, // Deja espacio para la barra de estado superior
+    paddingBottom: 20 
   },
-  avatarCaja: {
-    width: 100,
-    height: 100,
-    backgroundColor: '#D3D3D3',
-    borderRadius: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 15,
-    borderWidth: 2,
-    borderColor: '#000',
-  },
-  avatarTexto: {
-    fontSize: 32,
-    fontWeight: 'bold',
+  headerTitle: { 
+    fontSize: 22, 
     color: '#000',
+    fontWeight: '300' 
   },
-  nombre: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 5,
-    color: '#000',
+  profileSection: { 
+    alignItems: 'center', 
+    marginBottom: 20 
   },
-  email: {
-    fontSize: 16,
-    color: '#555',
+  avatarContainer: { 
+    position: 'relative', 
+    marginBottom: 10 
   },
-  opcionesCaja: {
-    flex: 1,
+  cameraBadge: { 
+    position: 'absolute', 
+    bottom: 0, 
+    right: 5, 
+    backgroundColor: '#3B82F6', // Azul exacto del mockup
+    width: 28, 
+    height: 28, 
+    borderRadius: 14, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    borderWidth: 2, 
+    borderColor: '#FFF' 
   },
-  btnOpcion: {
-    backgroundColor: 'white',
-    padding: 18,
-    borderWidth: 1,
-    borderColor: '#CCC',
-    marginBottom: 10,
-    borderRadius: 8,
+  name: { 
+    fontSize: 22, 
+    color: '#000', 
+    marginBottom: 4,
+    fontWeight: '300'
   },
-  textoOpcion: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#333',
+  email: { 
+    fontSize: 12, 
+    color: '#555' 
   },
-  btnSalir: {
-    backgroundColor: '#FF3B30',
-    padding: 15,
-    alignItems: 'center',
-    borderRadius: 8,
-    marginTop: 'auto', // Empuja el botón al fondo de la pantalla
-    marginBottom: 10,
+  divider: { 
+    height: 1, 
+    backgroundColor: '#666', // Gris oscuro para la línea divisoria
+    marginHorizontal: 20, 
+    marginVertical: 5 
   },
-  btnSalirTexto: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 16,
+  menuContainer: { 
+    paddingVertical: 5 
+  },
+  menuItem: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'space-between', 
+    paddingVertical: 15, 
+    paddingHorizontal: 20 
+  },
+  menuItemLeft: { 
+    flexDirection: 'row', 
+    alignItems: 'center' 
+  },
+  menuItemText: { 
+    fontSize: 15, 
+    color: '#000', 
+    marginLeft: 15,
+    fontWeight: '300'
   },
 });
