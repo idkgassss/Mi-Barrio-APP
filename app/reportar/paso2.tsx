@@ -1,21 +1,40 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Alert } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { Colors, Spacing, FontSize, Radius } from '@/constants/theme';
 
 export default function Paso2Screen() {
   const router = useRouter();
+  const [imagenUri, setImagenUri] = useState<string | null>(null);
 
-  const [fotoTomada, setFotoTomada] = useState(false);
+  const abrirCamara = async () => {
+    const permisos = await ImagePicker.requestCameraPermissionsAsync();
+    
+    if (!permisos.granted) {
+      Alert.alert('Permiso denegado', 'Necesitamos acceso a la cámara para tomar la foto del problema.');
+      return;
+    }
 
-  const handleSiguiente = () => {
-    router.push('/reportar/paso3');
+    const resultado = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!resultado.canceled) {
+      setImagenUri(resultado.assets[0].uri);
+    }
   };
 
-  const simularSacarFoto = () => {
-    setFotoTomada(true);
-    alert('¡Cámara activada! (Simulación)');
+  const handleSiguiente = () => {
+    // Si hay foto, la enviamos al paso 3 por parámetros. Si la salteó, no enviamos nada.
+    router.push({
+      pathname: '/reportar/paso3',
+      params: imagenUri ? { fotoUri: imagenUri } : {}
+    });
   };
 
   return (
@@ -33,19 +52,23 @@ export default function Paso2Screen() {
       {/* CONTENIDO CENTRAL */}
       <View style={styles.content}>
         <View style={styles.imagePlaceholder}>
-          <MaterialCommunityIcons
-            name={fotoTomada ? 'image-check' : 'image'}
-            size={100}
-            color="rgba(0,0,0,0.6)"
-          />
+          {imagenUri ? (
+            <Image source={{ uri: imagenUri }} style={styles.imagen} />
+          ) : (
+            <MaterialCommunityIcons
+              name="image"
+              size={100}
+              color="rgba(0,0,0,0.6)"
+            />
+          )}
         </View>
 
-        <TouchableOpacity style={styles.roundButton} onPress={simularSacarFoto}>
-          <Text style={styles.roundButtonText}>{fotoTomada ? 'VOLVER A SACAR' : 'SACAR FOTO'}</Text>
+        <TouchableOpacity style={styles.roundButton} onPress={abrirCamara}>
+          <Text style={styles.roundButtonText}>{imagenUri ? 'VOLVER A SACAR' : 'SACAR FOTO'}</Text>
         </TouchableOpacity>
 
-        {/* NUEVO BOTÓN PARA SALTEAR (Solo se muestra si no sacó foto) */}
-        {!fotoTomada && (
+        {/* BOTÓN PARA SALTEAR (Solo si no sacó foto) */}
+        {!imagenUri && (
           <TouchableOpacity style={styles.skipButton} onPress={handleSiguiente}>
             <Text style={styles.skipButtonText}>Saltear este paso</Text>
           </TouchableOpacity>
@@ -95,6 +118,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: Spacing.xxl * 2,
+    overflow: 'hidden', // Asegura que la imagen no sobresalga de la caja
+  },
+  imagen: {
+    width: '100%',
+    height: '100%',
   },
   roundButton: {
     width: 120,
@@ -111,18 +139,15 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
   },
-
-  // -- Estilos del nuevo botón "Saltear" --
   skipButton: {
-    marginTop: Spacing.xl, // Lo separa un poco del botón redondo
+    marginTop: Spacing.xl,
     padding: Spacing.sm,
   },
   skipButtonText: {
-    color: 'rgba(0,0,0,0.5)', // Un gris sutil para que no compita con el botón principal
+    color: 'rgba(0,0,0,0.5)',
     fontSize: FontSize.md,
     textDecorationLine: 'underline',
   },
-
   footer: {
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.md,

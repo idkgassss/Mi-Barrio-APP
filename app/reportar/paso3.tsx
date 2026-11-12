@@ -9,8 +9,9 @@ import {
   Platform,
   Modal,
   FlatList,
+  Image,
 } from 'react-native';
-import { useRouter, Stack } from 'expo-router';
+import { useRouter, Stack, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, Radius } from '@/constants/theme';
 
@@ -24,21 +25,22 @@ const OPCIONES_TIEMPO = [
 
 export default function Paso3Screen() {
   const router = useRouter();
+  
+  // ATRAPAMOS LA FOTO DEL PASO 2
+  const { fotoUri } = useLocalSearchParams<{ fotoUri: string }>();
 
   const [descripcion, setDescripcion] = useState('');
   const [tiempoSeleccionado, setTiempoSeleccionado] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
-
-  // NUEVO: Estado para la ubicación
   const [ubicacion, setUbicacion] = useState<string | null>(null);
 
   const handleEnviar = () => {
+    // Aquí (en el futuro) juntarías la categoría, la fotoUri, descripción, ubicación y tiempo
+    // para mandarlo a tu base de datos (PostgreSQL/Supabase).
     router.push('/reportar/exito');
   };
 
-  // NUEVO: Función para simular la captura del GPS
   const simularObtenerUbicacion = () => {
-    // Simulamos un pequeño tiempo de carga y seteamos una dirección de prueba
     setUbicacion('Presidente Derqui, Buenos Aires');
   };
 
@@ -76,7 +78,16 @@ export default function Paso3Screen() {
           <Text style={styles.charCounter}>{descripcion.length}/400</Text>
         </View>
 
-        {/* NUEVO: Botón de Ubicación */}
+        {/* MUESTRA LA FOTO (Solo si el usuario la sacó en el paso 2) */}
+        {fotoUri && (
+          <View style={styles.fotoContainer}>
+            <Ionicons name="checkmark-circle" size={20} color={Colors.primary} />
+            <Text style={styles.fotoText}>Foto adjuntada correctamente</Text>
+            <Image source={{ uri: fotoUri }} style={styles.miniaturaFoto} />
+          </View>
+        )}
+
+        {/* Botón de Ubicación */}
         <Text style={styles.dropdownLabel}>Ubicación del problema</Text>
         <TouchableOpacity style={styles.locationButton} onPress={simularObtenerUbicacion}>
           <Ionicons
@@ -104,7 +115,6 @@ export default function Paso3Screen() {
         <TouchableOpacity
           style={[
             styles.submitButton,
-            // Ahora requiere los 3 campos: descripción, tiempo Y ubicación
             (!descripcion || !tiempoSeleccionado || !ubicacion) && styles.submitButtonDisabled,
           ]}
           onPress={handleEnviar}
@@ -178,8 +188,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.1)',
     borderRadius: Radius.sm,
     padding: Spacing.md,
-    height: 150, // Lo achiqué un poquito para que entre la ubicación sin empujar todo
-    marginBottom: Spacing.xl,
+    height: 120, // Ajustado para hacerle espacio a la info de la foto
+    marginBottom: Spacing.md,
   },
   textArea: {
     flex: 1,
@@ -193,6 +203,32 @@ const styles = StyleSheet.create({
     fontSize: FontSize.sm,
     color: 'rgba(0,0,0,0.5)',
   },
+
+  // -- Estilos para la miniatura de la foto --
+  fotoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(28, 100, 242, 0.05)', // Fondo sutil azul
+    padding: Spacing.sm,
+    borderRadius: Radius.sm,
+    marginBottom: Spacing.xl,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+  },
+  fotoText: {
+    flex: 1,
+    fontSize: FontSize.sm,
+    color: Colors.primary,
+    marginLeft: Spacing.sm,
+    fontWeight: '500',
+  },
+  miniaturaFoto: {
+    width: 40,
+    height: 40,
+    borderRadius: Radius.xs,
+    marginLeft: Spacing.md,
+  },
+
   dropdownLabel: {
     fontSize: FontSize.md,
     color: Colors.text,
@@ -206,7 +242,7 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.md,
     borderRadius: Radius.sm,
-    marginBottom: Spacing.xl, // Separación agregada
+    marginBottom: Spacing.xl,
   },
   dropdownText: {
     fontSize: FontSize.md,
@@ -215,8 +251,6 @@ const styles = StyleSheet.create({
   dropdownPlaceholder: {
     color: 'rgba(0,0,0,0.6)',
   },
-
-  // -- Estilos para el nuevo botón de ubicación --
   locationButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -229,9 +263,8 @@ const styles = StyleSheet.create({
   locationText: {
     fontSize: FontSize.md,
     color: Colors.text,
-    marginLeft: Spacing.sm, // Separa el texto del ícono de GPS
+    marginLeft: Spacing.sm,
   },
-
   footer: {
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.md,
