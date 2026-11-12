@@ -1,5 +1,15 @@
 import React from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, Image, SafeAreaView, Platform, StatusBar } from 'react-native';
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  StyleSheet,
+  Image,
+  SafeAreaView,
+  Platform,
+  StatusBar,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 // Importamos tu mockData real (Ajusta la ruta si es diferente)
@@ -22,7 +32,7 @@ export default function ReportesScreen() {
   const renderItem = ({ item }: { item: any }) => {
     // Usamos el campo 'estado' si existe, si no, usamos el booleano 'solucionado'
     const estadoInfo = getEstadoInfo(item.estado?.toLowerCase() || '', item.solucionado);
-    
+
     // Asumimos que la imagen viene en item.imagen o item.foto. Si no hay, ponemos un gris de fondo.
     const imagenUrl = item.imagen || item.foto;
 
@@ -41,7 +51,12 @@ export default function ReportesScreen() {
           <View style={styles.infoContainer}>
             {/* Título */}
             <View style={styles.row}>
-              <Ionicons name="location-sharp" size={20} color={estadoInfo.color} style={styles.icon} />
+              <Ionicons
+                name="location-sharp"
+                size={20}
+                color={estadoInfo.color}
+                style={styles.icon}
+              />
               <Text style={styles.titulo}>{item.titulo}</Text>
             </View>
 
@@ -76,15 +91,17 @@ export default function ReportesScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      {/* HEADER: Campana eliminada y View invisible agregado */}
       <View style={styles.header}>
         <Ionicons name="menu" size={32} color="black" />
         <View style={styles.logoContainer}>
           <Text style={styles.logoMi}>mi</Text>
           <Text style={styles.logoBarrio}>barrio</Text>
         </View>
-        <Ionicons name="notifications" size={28} color="black" />
+        {/* Contrapeso invisible con el mismo ancho del menú (size={32}) para centrar el logo */}
+        <View style={{ width: 32 }} />
       </View>
-      
+
       <Text style={styles.screenTitle}>Mis reportes</Text>
 
       <FlatList
@@ -103,7 +120,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
     // Esto empuja el contenido hacia abajo exactamente el tamaño de la barra de notificaciones de Android
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0, 
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   header: {
     flexDirection: 'row',
