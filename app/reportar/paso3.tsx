@@ -10,9 +10,11 @@ import {
   Modal,
   FlatList,
   Image,
+  Alert,
 } from 'react-native';
 import { useRouter, Stack, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as Location from 'expo-location';
 import { Colors, Spacing, FontSize, Radius } from '@/constants/theme';
 
 const OPCIONES_TIEMPO = [
@@ -25,23 +27,59 @@ const OPCIONES_TIEMPO = [
 
 export default function Paso3Screen() {
   const router = useRouter();
-  
-  // ATRAPAMOS LA FOTO DEL PASO 2
   const { fotoUri } = useLocalSearchParams<{ fotoUri: string }>();
 
   const [descripcion, setDescripcion] = useState('');
   const [tiempoSeleccionado, setTiempoSeleccionado] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [ubicacion, setUbicacion] = useState<string | null>(null);
+  const [cargandoUbicacion, setCargandoUbicacion] = useState(false);
 
   const handleEnviar = () => {
-    // Aquí (en el futuro) juntarías la categoría, la fotoUri, descripción, ubicación y tiempo
-    // para mandarlo a tu base de datos (PostgreSQL/Supabase).
     router.push('/reportar/exito');
   };
 
-  const simularObtenerUbicacion = () => {
-    setUbicacion('Presidente Derqui, Buenos Aires');
+  // Función real para obtener la ubicación mediante el GPS del celular
+  const obtenerUbicacionReal = async () => {
+    try {
+      setCargandoUbicacion(true);
+
+      // 1. Solicitar permisos de ubicación
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permiso denegado', 'Necesitamos acceso a tu ubicación para geolocalizar el reporte.');
+        setCargandoUbicacion(false);
+        return;
+      }
+
+      // 2. Obtener posición actual con alta precisión
+      const posicion = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High,
+      });
+
+      const { latitude, longitude } = posicion.coords;
+
+      // 3. Traducir coordenadas a una dirección legible (Geocodificación inversa)
+      const resultados = await Location.reverseGeocodeAsync({
+        latitude,
+        longitude,
+      });
+
+      if (resultados.length > 0) {
+        const direccion = resultados[0];
+        // Armamos un texto amigable con la calle, localidad o partido
+        const calle = direccion.street || 'Ubicación actual';
+        const localidad = direccion.city || direccion.subregion || 'Buenos Aires';
+        setUbicacion(`${calle}, ${localidad}`);
+      } else {
+        // Fallback si no encuentra dirección exacta
+        setUbicacion(`Lat: ${latitude.toFixed(4)}, Lon: ${longitude.toFixed(4)}`);
+      }
+    } catch (error) {
+      Alert.alert('Error', 'No se pudo obtener la ubicación actual.');
+    } finally {
+      setCargandoUbicacion(false);
+    }
   };
 
   return (
@@ -78,7 +116,7 @@ export default function Paso3Screen() {
           <Text style={styles.charCounter}>{descripcion.length}/400</Text>
         </View>
 
-        {/* MUESTRA LA FOTO (Solo si el usuario la sacó en el paso 2) */}
+        {/* MUESTRA LA FOTO */}
         {fotoUri && (
           <View style={styles.fotoContainer}>
             <Ionicons name="checkmark-circle" size={20} color={Colors.primary} />
@@ -87,16 +125,20 @@ export default function Paso3Screen() {
           </View>
         )}
 
-        {/* Botón de Ubicación */}
+        {/* Botón de Ubicación Real (GPS) */}
         <Text style={styles.dropdownLabel}>Ubicación del problema</Text>
-        <TouchableOpacity style={styles.locationButton} onPress={simularObtenerUbicacion}>
+        <TouchableOpacity 
+          style={styles.locationButton} 
+          onPress={obtenerUbicacionReal}
+          disabled={cargandoUbicacion}
+        >
           <Ionicons
             name={ubicacion ? 'location' : 'location-outline'}
             size={20}
             color={ubicacion ? Colors.primary : Colors.text}
           />
           <Text style={[styles.locationText, !ubicacion && styles.dropdownPlaceholder]}>
-            {ubicacion ? ubicacion : 'Tocar para obtener mi ubicación'}
+            {cargandoUbicacion ? 'Obteniendo ubicación GPS...' : (ubicacion ? ubicacion : 'Tocar para obtener mi ubicación')}
           </Text>
         </TouchableOpacity>
 
@@ -188,7 +230,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.1)',
     borderRadius: Radius.sm,
     padding: Spacing.md,
-    height: 120, // Ajustado para hacerle espacio a la info de la foto
+    height: 120,
     marginBottom: Spacing.md,
   },
   textArea: {
@@ -203,12 +245,10 @@ const styles = StyleSheet.create({
     fontSize: FontSize.sm,
     color: 'rgba(0,0,0,0.5)',
   },
-
-  // -- Estilos para la miniatura de la foto --
   fotoContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(28, 100, 242, 0.05)', // Fondo sutil azul
+    backgroundColor: 'rgba(28, 100, 242, 0.05)',
     padding: Spacing.sm,
     borderRadius: Radius.sm,
     marginBottom: Spacing.xl,
@@ -225,10 +265,9 @@ const styles = StyleSheet.create({
   miniaturaFoto: {
     width: 40,
     height: 40,
-    borderRadius: Radius.xs,
+    borderRadius: Radius.xs, 
     marginLeft: Spacing.md,
   },
-
   dropdownLabel: {
     fontSize: FontSize.md,
     color: Colors.text,
