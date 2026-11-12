@@ -7,16 +7,14 @@ export default function PerfilScreen() {
 
   return (
     <View style={styles.container}>
-      {/* 1. Encabezado */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={28} color="#000" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Perfil</Text>
-        <View style={{ width: 28 }} /> {/* Espaciador invisible para centrar el texto */}
+        <View style={{ width: 28 }} />
       </View>
 
-      {/* 2. Sección del Avatar */}
       <View style={styles.profileSection}>
         <View style={styles.avatarContainer}>
           <FontAwesome5 name="user-circle" size={110} color="#000" />
@@ -30,7 +28,6 @@ export default function PerfilScreen() {
 
       <View style={styles.divider} />
 
-      {/* 3. Menú de Opciones */}
       <View style={styles.menuContainer}>
         <TouchableOpacity style={styles.menuItem}>
           <View style={styles.menuItemLeft}>
@@ -68,7 +65,6 @@ export default function PerfilScreen() {
 
         <View style={styles.divider} />
 
-        {/* Botón de Cerrar Sesión */}
         <TouchableOpacity 
           style={styles.menuItem} 
           onPress={() => router.replace('/(auth)/login')}
@@ -85,78 +81,17 @@ export default function PerfilScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: '#FFF' 
-  },
-  header: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    justifyContent: 'space-between', 
-    paddingHorizontal: 20, 
-    paddingTop: 50, // Deja espacio para la barra de estado superior
-    paddingBottom: 20 
-  },
-  headerTitle: { 
-    fontSize: 22, 
-    color: '#000',
-    fontWeight: '300' 
-  },
-  profileSection: { 
-    alignItems: 'center', 
-    marginBottom: 20 
-  },
-  avatarContainer: { 
-    position: 'relative', 
-    marginBottom: 10 
-  },
-  cameraBadge: { 
-    position: 'absolute', 
-    bottom: 0, 
-    right: 5, 
-    backgroundColor: '#3B82F6', // Azul exacto del mockup
-    width: 28, 
-    height: 28, 
-    borderRadius: 14, 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    borderWidth: 2, 
-    borderColor: '#FFF' 
-  },
-  name: { 
-    fontSize: 22, 
-    color: '#000', 
-    marginBottom: 4,
-    fontWeight: '300'
-  },
-  email: { 
-    fontSize: 12, 
-    color: '#555' 
-  },
-  divider: { 
-    height: 1, 
-    backgroundColor: '#666', // Gris oscuro para la línea divisoria
-    marginHorizontal: 20, 
-    marginVertical: 5 
-  },
-  menuContainer: { 
-    paddingVertical: 5 
-  },
-  menuItem: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    justifyContent: 'space-between', 
-    paddingVertical: 15, 
-    paddingHorizontal: 20 
-  },
-  menuItemLeft: { 
-    flexDirection: 'row', 
-    alignItems: 'center' 
-  },
-  menuItemText: { 
-    fontSize: 15, 
-    color: '#000', 
-    marginLeft: 15,
-    fontWeight: '300'
-  },
+  container: { flex: 1, backgroundColor: '#FFF' },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 50, paddingBottom: 20 },
+  headerTitle: { fontSize: 22, color: '#000', fontWeight: '300' },
+  profileSection: { alignItems: 'center', marginBottom: 20 },
+  avatarContainer: { position: 'relative', marginBottom: 10 },
+  cameraBadge: { position: 'absolute', bottom: 0, right: 5, backgroundColor: '#3B82F6', width: 28, height: 28, borderRadius: 14, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#FFF' },
+  name: { fontSize: 22, color: '#000', marginBottom: 4, fontWeight: '300' },
+  email: { fontSize: 12, color: '#555' },
+  divider: { height: 1, backgroundColor: '#666', marginHorizontal: 20, marginVertical: 5 },
+  menuContainer: { paddingVertical: 5 },
+  menuItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 15, paddingHorizontal: 20 },
+  menuItemLeft: { flexDirection: 'row', alignItems: 'center' },
+  menuItemText: { fontSize: 15, color: '#000', marginLeft: 15, fontWeight: '300' },
 });
