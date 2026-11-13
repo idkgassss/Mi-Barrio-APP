@@ -1,3 +1,4 @@
+// app/(tabs)/reportes.tsx
 import React from 'react';
 import {
   View,
@@ -9,16 +10,19 @@ import {
   SafeAreaView,
   Platform,
   StatusBar,
+  ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-// Importamos tu mockData real (Ajusta la ruta si es diferente)
-import { REPORTES_MOCK } from '../../data/mockData';
+import { useReportes } from '../../hooks/useReportes';
 
 export default function ReportesScreen() {
   const router = useRouter();
 
-  // Función para determinar el color y el texto según el estado del reporte
+  // 1. Inyectamos tu Custom Hook (Adiós Mocks, hola Firebase)
+  const { reportes, isLoading, isRefreshing, onRefresh } = useReportes();
+
   const getEstadoInfo = (estado: string, solucionado: boolean) => {
     if (solucionado || estado === 'solucionado') {
       return { color: '#00FF00', texto: 'Solucionado' };
@@ -30,11 +34,13 @@ export default function ReportesScreen() {
   };
 
   const renderItem = ({ item }: { item: any }) => {
-    // Usamos el campo 'estado' si existe, si no, usamos el booleano 'solucionado'
     const estadoInfo = getEstadoInfo(item.estado?.toLowerCase() || '', item.solucionado);
+    const imagenUrl = item.fotoUrl || item.imagen || item.foto;
 
-    // Asumimos que la imagen viene en item.imagen o item.foto. Si no hay, ponemos un gris de fondo.
-    const imagenUrl = item.imagen || item.foto;
+    // Formatear la fecha de Firestore a algo legible
+    const fechaLegible = item.fechaCreacion
+      ? new Date(item.fechaCreacion.seconds * 1000).toLocaleDateString('es-AR')
+      : item.fecha || 'Sin fecha';
 
     return (
       <TouchableOpacity
@@ -47,9 +53,7 @@ export default function ReportesScreen() {
         }}
       >
         <View style={styles.cardContent}>
-          {/* Columna Izquierda: Info y Estado */}
           <View style={styles.infoContainer}>
-            {/* Título */}
             <View style={styles.row}>
               <Ionicons
                 name="location-sharp"
@@ -59,14 +63,12 @@ export default function ReportesScreen() {
               />
               <Text style={styles.titulo}>{item.titulo}</Text>
             </View>
-
-            {/* Dirección */}
             <View style={styles.row}>
               <Ionicons name="location-outline" size={20} color="#888" style={styles.icon} />
-              <Text style={styles.direccion}>{item.direccion || 'Dirección no especificada'}</Text>
+              <Text style={styles.direccion}>
+                {item.ubicacion || item.direccion || 'Ubicación no especificada'}
+              </Text>
             </View>
-
-            {/* Estado (Puntito y Texto) */}
             <View style={[styles.row, styles.estadoRow]}>
               <View style={[styles.puntoEstado, { backgroundColor: estadoInfo.color }]} />
               <Text style={[styles.textoEstado, { color: estadoInfo.color }]}>
@@ -74,15 +76,13 @@ export default function ReportesScreen() {
               </Text>
             </View>
           </View>
-
-          {/* Columna Derecha: Imagen y Fecha */}
           <View style={styles.imagenContainer}>
             {imagenUrl ? (
               <Image source={{ uri: imagenUrl }} style={styles.imagen} />
             ) : (
               <View style={[styles.imagen, styles.imagenPlaceholder]} />
             )}
-            <Text style={styles.fecha}>{item.fecha || '23/08/2026'}</Text>
+            <Text style={styles.fecha}>{fechaLegible}</Text>
           </View>
         </View>
       </TouchableOpacity>
@@ -91,26 +91,39 @@ export default function ReportesScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/* HEADER: Campana eliminada y View invisible agregado */}
       <View style={styles.header}>
         <Ionicons name="menu" size={32} color="black" />
         <View style={styles.logoContainer}>
           <Text style={styles.logoMi}>mi</Text>
           <Text style={styles.logoBarrio}>barrio</Text>
         </View>
-        {/* Contrapeso invisible con el mismo ancho del menú (size={32}) para centrar el logo */}
         <View style={{ width: 32 }} />
       </View>
 
       <Text style={styles.screenTitle}>Mis reportes</Text>
 
-      <FlatList
-        data={REPORTES_MOCK}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={renderItem}
-        contentContainerStyle={styles.listaPadding}
-        showsVerticalScrollIndicator={false}
-      />
+      {/* 2. Pantalla de carga condicional */}
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#1877F2" />
+          <Text style={styles.loadingText}>Cargando reportes del barrio...</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={reportes}
+          keyExtractor={(item, index) => (item.id ? item.id.toString() : index.toString())}
+          renderItem={renderItem}
+          contentContainerStyle={styles.listaPadding}
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={
+            <Text style={styles.emptyText}>No hay reportes en tu barrio todavía.</Text>
+          }
+          // 3. Añadimos el Pull-to-Refresh
+          refreshControl={
+            <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} colors={['#1877F2']} />
+          }
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -119,7 +132,6 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#FFFFFF',
-    // Esto empuja el contenido hacia abajo exactamente el tamaño de la barra de notificaciones de Android
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   header: {
@@ -225,5 +237,21 @@ const styles = StyleSheet.create({
     color: '#666',
     marginTop: 8,
     textAlign: 'right',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 10,
+    color: '#666',
+    fontSize: 16,
+  },
+  emptyText: {
+    textAlign: 'center',
+    color: '#888',
+    marginTop: 50,
+    fontSize: 16,
   },
 });
