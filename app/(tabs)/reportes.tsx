@@ -9,25 +9,19 @@ import {
   SafeAreaView,
   Platform,
   StatusBar,
-  ActivityIndicator,
-  RefreshControl,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
-// Importamos el menú lateral (de tu rama)
+// Importamos tu mockData real
+import { REPORTES_MOCK } from '../../data/mockData';
+// Importamos el menú lateral
 import MenuLateral from '../../components/MenuLateral';
-// Importamos el Custom Hook de Firebase (de la rama de tus compañeros)
-import { useReportes } from '../../hooks/useReportes';
 
 export default function ReportesScreen() {
   const router = useRouter();
   
-  // Estado de tu rama para controlar el menú lateral
   const [menuVisible, setMenuVisible] = useState(false);
-
-  // Hook de Firebase de la rama main
-  const { reportes, isLoading, isRefreshing, onRefresh } = useReportes();
 
   const getEstadoInfo = (estado: string, solucionado: boolean) => {
     if (solucionado || estado === 'solucionado') {
@@ -41,12 +35,7 @@ export default function ReportesScreen() {
 
   const renderItem = ({ item }: { item: any }) => {
     const estadoInfo = getEstadoInfo(item.estado?.toLowerCase() || '', item.solucionado);
-    
-    // Lógica de Firebase para imágenes y fechas
-    const imagenUrl = item.fotoUrl || item.imagen || item.foto;
-    const fechaLegible = item.fechaCreacion
-      ? new Date(item.fechaCreacion.seconds * 1000).toLocaleDateString('es-AR')
-      : item.fecha || 'Sin fecha';
+    const imagenUrl = item.imagen || item.foto;
 
     return (
       <TouchableOpacity
@@ -67,9 +56,7 @@ export default function ReportesScreen() {
 
             <View style={styles.row}>
               <Ionicons name="location-outline" size={20} color="#888" style={styles.icon} />
-              <Text style={styles.direccion}>
-                {item.ubicacion || item.direccion || 'Ubicación no especificada'}
-              </Text>
+              <Text style={styles.direccion}>{item.direccion || 'Dirección no especificada'}</Text>
             </View>
 
             <View style={[styles.row, styles.estadoRow]}>
@@ -84,7 +71,7 @@ export default function ReportesScreen() {
             ) : (
               <View style={[styles.imagen, styles.imagenPlaceholder]} />
             )}
-            <Text style={styles.fecha}>{fechaLegible}</Text>
+            <Text style={styles.fecha}>{item.fecha || '23/08/2026'}</Text>
           </View>
         </View>
       </TouchableOpacity>
@@ -93,14 +80,17 @@ export default function ReportesScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/* HEADER de tu rama: Z-Index altísimo para que nada lo bloquee */}
+      {/* HEADER con Z-Index altísimo para que nada lo bloquee */}
       <View style={[styles.header, { zIndex: 100, elevation: 10 }]}>
         
-        {/* Tu botón expandido con hitSlop */}
+        {/* hitSlop expande el área táctil sin cambiar el diseño visual */}
         <TouchableOpacity 
           style={{ padding: 10 }} 
           hitSlop={{ top: 25, bottom: 25, left: 25, right: 25 }}
-          onPress={() => setMenuVisible(true)}
+          onPress={() => {
+            console.log(">>> BOTON DE MENU PRESIONADO EN EL CELULAR <<<");
+            setMenuVisible(true);
+          }}
         >
           <Ionicons name="menu" size={36} color="black" />
         </TouchableOpacity>
@@ -115,29 +105,14 @@ export default function ReportesScreen() {
 
       <Text style={styles.screenTitle}>Mis reportes</Text>
 
-      {/* Lógica de carga de Firebase de la rama de tus compañeros */}
-      {isLoading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#1877F2" />
-          <Text style={styles.loadingText}>Cargando reportes del barrio...</Text>
-        </View>
-      ) : (
-        <FlatList
-          data={reportes}
-          keyExtractor={(item, index) => (item.id ? item.id.toString() : index.toString())}
-          renderItem={renderItem}
-          contentContainerStyle={styles.listaPadding}
-          showsVerticalScrollIndicator={false}
-          ListEmptyComponent={
-            <Text style={styles.emptyText}>No hay reportes en tu barrio todavía.</Text>
-          }
-          refreshControl={
-            <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} colors={['#1877F2']} />
-          }
-        />
-      )}
+      <FlatList
+        data={REPORTES_MOCK}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={renderItem}
+        contentContainerStyle={styles.listaPadding}
+        showsVerticalScrollIndicator={false}
+      />
 
-      {/* Tu componente del Menú Lateral */}
       <MenuLateral 
         visible={menuVisible} 
         onClose={() => setMenuVisible(false)} 
@@ -255,22 +230,5 @@ const styles = StyleSheet.create({
     color: '#666',
     marginTop: 8,
     textAlign: 'right',
-  },
-  // Estilos agregados de la rama main para la carga
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: 10,
-    color: '#666',
-    fontSize: 16,
-  },
-  emptyText: {
-    textAlign: 'center',
-    color: '#888',
-    marginTop: 50,
-    fontSize: 16,
   },
 });
