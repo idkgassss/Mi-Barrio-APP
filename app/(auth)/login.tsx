@@ -1,262 +1,124 @@
-import { useState } from 'react';
+// app/(auth)/login.tsx
+import React from 'react';
 import {
   View,
   Text,
-  StyleSheet,
-  ImageBackground,
-  Image,
   TouchableOpacity,
-  TextInput,
+  StyleSheet,
+  SafeAreaView,
+  Platform,
+  StatusBar,
 } from 'react-native';
-import { useRouter } from 'expo-router';
-// Importación estricta de variables de diseño
-import { Colors, Spacing, FontSize, Radius } from '@/constants/theme';
+import { Ionicons } from '@expo/vector-icons';
+import Toast from 'react-native-toast-message';
+
+import { authService } from '../../services/authService';
+import { useUsuarioStore } from '../../store/useUsuarioStore';
 
 export default function LoginScreen() {
-  const router = useRouter();
+  const login = useUsuarioStore((s: any) => s.login);
 
-  const [mostrarTarjeta, setMostrarTarjeta] = useState(false);
-  const [isLogin, setIsLogin] = useState(true);
+  const handleGoogleLogin = async () => {
+    try {
+      const firebaseUser = await authService.signInWithGoogle();
+      const token = await firebaseUser.getIdToken();
 
-  const handleLoginFinal = () => {
-    router.replace('/(tabs)');
-  };
+      await login(
+        {
+          id: firebaseUser.uid,
+          email: firebaseUser.email || '',
+          nombre: firebaseUser.displayName || 'Vecino',
+          avatar: firebaseUser.photoURL || '',
+        },
+        token
+      );
 
-  const abrirTarjeta = (modoLogin: boolean) => {
-    setIsLogin(modoLogin);
-    setMostrarTarjeta(true);
+      Toast.show({ type: 'success', text1: '¡Bienvenido a Mi Barrio!' });
+    } catch (error: any) {
+      Toast.show({ type: 'error', text1: 'Error al iniciar sesión', text2: error.message });
+    }
   };
 
   return (
-    <ImageBackground
-      source={require('../../assets/fondo.png')}
-      style={styles.background}
-      resizeMode="cover"
-    >
-      <View style={styles.overlay}>
-        <View style={[styles.logoContainer, mostrarTarjeta && styles.logoContainerSubido]}>
-          <Image
-            source={require('../../assets/logo.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <View style={styles.logoContainer}>
+          <Text style={styles.logoMi}>mi</Text>
+          <Text style={styles.logoBarrio}>barrio</Text>
         </View>
+        <Text style={styles.subtitle}>Tu voz hace la diferencia.</Text>
 
-        {!mostrarTarjeta ? (
-          /* VISTA 1: PANTALLA INICIAL */
-          <View style={styles.bottomContainer}>
-            <TouchableOpacity style={styles.botonPrincipal} onPress={() => abrirTarjeta(true)}>
-              <Text style={styles.botonPrincipalTexto}>Iniciar Sesion</Text>
-            </TouchableOpacity>
-
-            <View style={styles.footerInicial}>
-              <Text style={styles.textoFooterInicial}>No tenes cuenta? </Text>
-              <TouchableOpacity onPress={() => abrirTarjeta(false)}>
-                <Text style={styles.linkFooterInicial}>Registrate</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        ) : (
-          /* VISTA 2: TARJETA BLANCA (Ahora envuelta en cardWrapper para centrarla) */
-          <View style={styles.cardWrapper}>
-            <View style={styles.card}>
-              <View style={styles.toggleContainer}>
-                <TouchableOpacity
-                  style={[styles.toggleButton, isLogin && styles.toggleButtonActive]}
-                  onPress={() => setIsLogin(true)}
-                >
-                  <Text style={[styles.toggleText, isLogin && styles.toggleTextActive]}>
-                    Iniciar Sesion
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.toggleButton, !isLogin && styles.toggleButtonActive]}
-                  onPress={() => setIsLogin(false)}
-                >
-                  <Text style={[styles.toggleText, !isLogin && styles.toggleTextActive]}>
-                    Registrarse
-                  </Text>
-                </TouchableOpacity>
-              </View>
-
-              <Text style={styles.welcomeText}>Bienvenido a MI Barrio</Text>
-
-              <TextInput
-                style={styles.input}
-                placeholder="E-mail"
-                placeholderTextColor={Colors.text}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Contraseña"
-                placeholderTextColor={Colors.text}
-                secureTextEntry
-              />
-
-              <TouchableOpacity style={styles.actionButton} onPress={handleLoginFinal}>
-                <Text style={styles.actionButtonText}>
-                  {isLogin ? 'Iniciar Sesion' : 'Registrarse'}
-                </Text>
-              </TouchableOpacity>
-
-              <View style={styles.footerTarjeta}>
-                <Text style={styles.textoFooterTarjeta}>
-                  {isLogin ? 'No tenes cuenta? ' : 'Ya tenes cuenta? '}
-                </Text>
-                <TouchableOpacity onPress={() => setIsLogin(!isLogin)}>
-                  <Text style={styles.linkFooterTarjeta}>{isLogin ? 'Registrate' : 'Ingresá'}</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        )}
+        <TouchableOpacity
+          style={styles.btnGoogle}
+          onPress={handleGoogleLogin}
+          accessibilityRole="button"
+          accessibilityLabel="Iniciar sesión con cuenta de Google"
+        >
+          <Ionicons name="logo-google" size={24} color="#DB4437" style={styles.icon} />
+          <Text style={styles.btnText}>Continuar con Google</Text>
+        </TouchableOpacity>
       </View>
-    </ImageBackground>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  background: {
+  safeArea: {
     flex: 1,
-    width: '100%',
-    height: '100%',
+    backgroundColor: '#FFFFFF',
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
-  overlay: {
+  container: {
     flex: 1,
-    backgroundColor: 'rgba(28, 56, 111, 0.7)',
-    paddingHorizontal: Spacing.lg,
-    // Un margen general en la base para que nada toque el borde del celular jamás
-    paddingBottom: Spacing.xxl,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
   },
-
   logoContainer: {
-    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    marginBottom: 10,
+  },
+  logoMi: {
+    color: '#FF0000',
+    fontSize: 48,
+    fontWeight: '900',
+    letterSpacing: -2,
+  },
+  logoBarrio: {
+    color: '#0056b3',
+    fontSize: 48,
+    fontWeight: '900',
+    letterSpacing: -2,
+  },
+  subtitle: {
+    fontSize: 18,
+    color: '#666',
+    marginBottom: 50,
+  },
+  btnGoogle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    width: '100%',
     justifyContent: 'center',
-    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  logoContainerSubido: {
-    flex: 0,
-    marginTop: Spacing.xxl * 2, // Lo despega del borde superior de la pantalla
-    marginBottom: Spacing.sm,
+  icon: {
+    marginRight: 12,
   },
-  logo: {
-    width: 250,
-    height: 90,
-  },
-
-  bottomContainer: {
-    width: '100%',
-    alignItems: 'center',
-  },
-  botonPrincipal: {
-    backgroundColor: Colors.primary,
-    width: '100%',
-    paddingVertical: Spacing.md,
-    borderRadius: Radius.lg,
-    alignItems: 'center',
-    marginBottom: Spacing.md,
-    borderWidth: 1,
-    borderColor: '#000',
-  },
-  botonPrincipalTexto: {
-    color: Colors.surface,
-    fontSize: FontSize.lg,
+  btnText: {
+    color: '#333',
     fontWeight: 'bold',
-  },
-  footerInicial: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  textoFooterInicial: {
-    color: Colors.surface,
-    fontSize: FontSize.md,
-  },
-  linkFooterInicial: {
-    color: Colors.primary,
-    fontSize: FontSize.md,
-    textDecorationLine: 'underline',
-  },
-
-  /* --- NUEVO CONTENEDOR PARA CENTRAR LA TARJETA --- */
-  cardWrapper: {
-    flex: 1,
-    justifyContent: 'center', // Alinea la tarjeta verticalmente en el medio
-  },
-  card: {
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.lg,
-    padding: Spacing.xl,
-    width: '100%',
-    borderWidth: 2,
-    borderColor: Colors.primary,
-  },
-
-  toggleContainer: {
-    flexDirection: 'row',
-    backgroundColor: Colors.background,
-    borderRadius: Radius.lg,
-    borderWidth: 1,
-    borderColor: Colors.text,
-    marginBottom: Spacing.xl,
-  },
-  toggleButton: {
-    flex: 1,
-    paddingVertical: Spacing.md,
-    borderRadius: Radius.lg,
-    alignItems: 'center',
-  },
-  toggleButtonActive: {
-    backgroundColor: Colors.primary,
-  },
-  toggleText: {
-    color: Colors.text,
-    fontSize: FontSize.md,
-  },
-  toggleTextActive: {
-    color: Colors.surface,
-  },
-  welcomeText: {
-    fontSize: FontSize.lg,
-    color: Colors.text,
-    marginBottom: Spacing.lg,
-  },
-  input: {
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.text,
-    paddingVertical: Spacing.sm,
-    marginBottom: Spacing.lg,
-    fontSize: FontSize.md,
-    color: Colors.text,
-  },
-  actionButton: {
-    backgroundColor: Colors.primary,
-    borderRadius: Radius.lg,
-    paddingVertical: Spacing.md,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: Colors.text,
-    marginTop: Spacing.sm,
-    marginBottom: Spacing.md,
-  },
-  actionButtonText: {
-    color: Colors.surface,
-    fontSize: FontSize.lg,
-    fontWeight: 'bold',
-  },
-  footerTarjeta: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
-  textoFooterTarjeta: {
-    color: Colors.text,
-    fontSize: FontSize.sm,
-  },
-  linkFooterTarjeta: {
-    color: Colors.primary,
-    fontSize: FontSize.sm,
-    textDecorationLine: 'underline',
+    fontSize: 16,
   },
 });
