@@ -1,11 +1,17 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView } from 'react-native';
 import { Tabs, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, Radius } from '@/constants/theme';
 
+// Importamos el menú lateral que ya armaste
+import MenuLateral from '../../components/MenuLateral';
+
 export default function HomeScreen() {
   const router = useRouter();
+  
+  // Estado para controlar si el menú lateral está visible
+  const [menuVisible, setMenuVisible] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -19,9 +25,13 @@ export default function HomeScreen() {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Tabs.Screen options={{ headerShown: false }} />
 
-      {/*HEADER Menú y Logo (Campanita eliminada)*/}
+      {/*HEADER Menú y Logo*/}
       <View style={styles.header}>
-        <TouchableOpacity>
+        {/* Le agregamos la función onPress y un hitSlop para que sea fácil de tocar */}
+        <TouchableOpacity 
+          onPress={() => setMenuVisible(true)}
+          hitSlop={{ top: 25, bottom: 25, left: 25, right: 25 }}
+        >
           <Ionicons name="menu" size={28} color={Colors.text} />
         </TouchableOpacity>
 
@@ -37,7 +47,8 @@ export default function HomeScreen() {
       {/*SECCIÓN: MIS REPORTES */}
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Mis Reportes</Text>
-        <TouchableOpacity>
+        {/* AQUÍ ESTÁ EL CAMBIO: El botón ahora redirige a /reportes */}
+        <TouchableOpacity onPress={() => router.push('/reportes')}>
           <Text style={styles.verTodosLink}>Ver todos</Text>
         </TouchableOpacity>
       </View>
@@ -78,6 +89,12 @@ export default function HomeScreen() {
           <Text style={styles.reportButtonText}>Reportar</Text>
         </TouchableOpacity>
       </View>
+
+      {/* COMPONENTE DEL MENÚ LATERAL */}
+      <MenuLateral
+        visible={menuVisible}
+        onClose={() => setMenuVisible(false)}
+      />
     </ScrollView>
   );
 }

@@ -1,5 +1,4 @@
-// app/(tabs)/reportes.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -15,12 +14,19 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+
+// Importamos el menú lateral (de tu rama)
+import MenuLateral from '../../components/MenuLateral';
+// Importamos el Custom Hook de Firebase (de la rama de tus compañeros)
 import { useReportes } from '../../hooks/useReportes';
 
 export default function ReportesScreen() {
   const router = useRouter();
+  
+  // Estado de tu rama para controlar el menú lateral
+  const [menuVisible, setMenuVisible] = useState(false);
 
-  // 1. Inyectamos tu Custom Hook (Adiós Mocks, hola Firebase)
+  // Hook de Firebase de la rama main
   const { reportes, isLoading, isRefreshing, onRefresh } = useReportes();
 
   const getEstadoInfo = (estado: string, solucionado: boolean) => {
@@ -35,9 +41,9 @@ export default function ReportesScreen() {
 
   const renderItem = ({ item }: { item: any }) => {
     const estadoInfo = getEstadoInfo(item.estado?.toLowerCase() || '', item.solucionado);
+    
+    // Lógica de Firebase para imágenes y fechas
     const imagenUrl = item.fotoUrl || item.imagen || item.foto;
-
-    // Formatear la fecha de Firestore a algo legible
     const fechaLegible = item.fechaCreacion
       ? new Date(item.fechaCreacion.seconds * 1000).toLocaleDateString('es-AR')
       : item.fecha || 'Sin fecha';
@@ -55,27 +61,23 @@ export default function ReportesScreen() {
         <View style={styles.cardContent}>
           <View style={styles.infoContainer}>
             <View style={styles.row}>
-              <Ionicons
-                name="location-sharp"
-                size={20}
-                color={estadoInfo.color}
-                style={styles.icon}
-              />
+              <Ionicons name="location-sharp" size={20} color={estadoInfo.color} style={styles.icon} />
               <Text style={styles.titulo}>{item.titulo}</Text>
             </View>
+
             <View style={styles.row}>
               <Ionicons name="location-outline" size={20} color="#888" style={styles.icon} />
               <Text style={styles.direccion}>
                 {item.ubicacion || item.direccion || 'Ubicación no especificada'}
               </Text>
             </View>
+
             <View style={[styles.row, styles.estadoRow]}>
               <View style={[styles.puntoEstado, { backgroundColor: estadoInfo.color }]} />
-              <Text style={[styles.textoEstado, { color: estadoInfo.color }]}>
-                {estadoInfo.texto}
-              </Text>
+              <Text style={[styles.textoEstado, { color: estadoInfo.color }]}>{estadoInfo.texto}</Text>
             </View>
           </View>
+
           <View style={styles.imagenContainer}>
             {imagenUrl ? (
               <Image source={{ uri: imagenUrl }} style={styles.imagen} />
@@ -91,18 +93,29 @@ export default function ReportesScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.header}>
-        <Ionicons name="menu" size={32} color="black" />
+      {/* HEADER de tu rama: Z-Index altísimo para que nada lo bloquee */}
+      <View style={[styles.header, { zIndex: 100, elevation: 10 }]}>
+        
+        {/* Tu botón expandido con hitSlop */}
+        <TouchableOpacity 
+          style={{ padding: 10 }} 
+          hitSlop={{ top: 25, bottom: 25, left: 25, right: 25 }}
+          onPress={() => setMenuVisible(true)}
+        >
+          <Ionicons name="menu" size={36} color="black" />
+        </TouchableOpacity>
+
         <View style={styles.logoContainer}>
           <Text style={styles.logoMi}>mi</Text>
           <Text style={styles.logoBarrio}>barrio</Text>
         </View>
-        <View style={{ width: 32 }} />
+        
+        <View style={{ width: 36 }} />
       </View>
 
       <Text style={styles.screenTitle}>Mis reportes</Text>
 
-      {/* 2. Pantalla de carga condicional */}
+      {/* Lógica de carga de Firebase de la rama de tus compañeros */}
       {isLoading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#1877F2" />
@@ -118,12 +131,17 @@ export default function ReportesScreen() {
           ListEmptyComponent={
             <Text style={styles.emptyText}>No hay reportes en tu barrio todavía.</Text>
           }
-          // 3. Añadimos el Pull-to-Refresh
           refreshControl={
             <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} colors={['#1877F2']} />
           }
         />
       )}
+
+      {/* Tu componente del Menú Lateral */}
+      <MenuLateral 
+        visible={menuVisible} 
+        onClose={() => setMenuVisible(false)} 
+      />
     </SafeAreaView>
   );
 }
@@ -238,6 +256,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
     textAlign: 'right',
   },
+  // Estilos agregados de la rama main para la carga
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
