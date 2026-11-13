@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -12,13 +12,17 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-// Importamos tu mockData real (Ajusta la ruta si es diferente)
+
+// Importamos tu mockData real
 import { REPORTES_MOCK } from '../../data/mockData';
+// Importamos el menú lateral
+import MenuLateral from '../../components/MenuLateral';
 
 export default function ReportesScreen() {
   const router = useRouter();
+  
+  const [menuVisible, setMenuVisible] = useState(false);
 
-  // Función para determinar el color y el texto según el estado del reporte
   const getEstadoInfo = (estado: string, solucionado: boolean) => {
     if (solucionado || estado === 'solucionado') {
       return { color: '#00FF00', texto: 'Solucionado' };
@@ -30,10 +34,7 @@ export default function ReportesScreen() {
   };
 
   const renderItem = ({ item }: { item: any }) => {
-    // Usamos el campo 'estado' si existe, si no, usamos el booleano 'solucionado'
     const estadoInfo = getEstadoInfo(item.estado?.toLowerCase() || '', item.solucionado);
-
-    // Asumimos que la imagen viene en item.imagen o item.foto. Si no hay, ponemos un gris de fondo.
     const imagenUrl = item.imagen || item.foto;
 
     return (
@@ -47,35 +48,23 @@ export default function ReportesScreen() {
         }}
       >
         <View style={styles.cardContent}>
-          {/* Columna Izquierda: Info y Estado */}
           <View style={styles.infoContainer}>
-            {/* Título */}
             <View style={styles.row}>
-              <Ionicons
-                name="location-sharp"
-                size={20}
-                color={estadoInfo.color}
-                style={styles.icon}
-              />
+              <Ionicons name="location-sharp" size={20} color={estadoInfo.color} style={styles.icon} />
               <Text style={styles.titulo}>{item.titulo}</Text>
             </View>
 
-            {/* Dirección */}
             <View style={styles.row}>
               <Ionicons name="location-outline" size={20} color="#888" style={styles.icon} />
               <Text style={styles.direccion}>{item.direccion || 'Dirección no especificada'}</Text>
             </View>
 
-            {/* Estado (Puntito y Texto) */}
             <View style={[styles.row, styles.estadoRow]}>
               <View style={[styles.puntoEstado, { backgroundColor: estadoInfo.color }]} />
-              <Text style={[styles.textoEstado, { color: estadoInfo.color }]}>
-                {estadoInfo.texto}
-              </Text>
+              <Text style={[styles.textoEstado, { color: estadoInfo.color }]}>{estadoInfo.texto}</Text>
             </View>
           </View>
 
-          {/* Columna Derecha: Imagen y Fecha */}
           <View style={styles.imagenContainer}>
             {imagenUrl ? (
               <Image source={{ uri: imagenUrl }} style={styles.imagen} />
@@ -91,15 +80,27 @@ export default function ReportesScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/* HEADER: Campana eliminada y View invisible agregado */}
-      <View style={styles.header}>
-        <Ionicons name="menu" size={32} color="black" />
+      {/* HEADER con Z-Index altísimo para que nada lo bloquee */}
+      <View style={[styles.header, { zIndex: 100, elevation: 10 }]}>
+        
+        {/* hitSlop expande el área táctil sin cambiar el diseño visual */}
+        <TouchableOpacity 
+          style={{ padding: 10 }} 
+          hitSlop={{ top: 25, bottom: 25, left: 25, right: 25 }}
+          onPress={() => {
+            console.log(">>> BOTON DE MENU PRESIONADO EN EL CELULAR <<<");
+            setMenuVisible(true);
+          }}
+        >
+          <Ionicons name="menu" size={36} color="black" />
+        </TouchableOpacity>
+
         <View style={styles.logoContainer}>
           <Text style={styles.logoMi}>mi</Text>
           <Text style={styles.logoBarrio}>barrio</Text>
         </View>
-        {/* Contrapeso invisible con el mismo ancho del menú (size={32}) para centrar el logo */}
-        <View style={{ width: 32 }} />
+        
+        <View style={{ width: 36 }} />
       </View>
 
       <Text style={styles.screenTitle}>Mis reportes</Text>
@@ -111,6 +112,11 @@ export default function ReportesScreen() {
         contentContainerStyle={styles.listaPadding}
         showsVerticalScrollIndicator={false}
       />
+
+      <MenuLateral 
+        visible={menuVisible} 
+        onClose={() => setMenuVisible(false)} 
+      />
     </SafeAreaView>
   );
 }
@@ -119,7 +125,6 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#FFFFFF',
-    // Esto empuja el contenido hacia abajo exactamente el tamaño de la barra de notificaciones de Android
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   header: {
