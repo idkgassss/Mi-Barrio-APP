@@ -1,173 +1,80 @@
-import { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Alert } from 'react-native';
-import { useRouter, Stack } from 'expo-router';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+// app/reportar/paso2.tsx
+import React from 'react';
+import { View, Text, TouchableOpacity, Image, StyleSheet, SafeAreaView } from 'react-native';
+import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
-import { Colors, Spacing, FontSize, Radius } from '@/constants/theme';
+import Toast from 'react-native-toast-message';
+import { Ionicons } from '@expo/vector-icons';
+import { useReporteDraftStore } from '../../store/useReporteDraftStore';
 
 export default function Paso2Screen() {
   const router = useRouter();
-  const [imagenUri, setImagenUri] = useState<string | null>(null);
+  const { imageUri, setFoto } = useReporteDraftStore();
 
-  const abrirCamara = async () => {
-    const permisos = await ImagePicker.requestCameraPermissionsAsync();
-    
-    if (!permisos.granted) {
-      Alert.alert('Permiso denegado', 'Necesitamos acceso a la cámara para tomar la foto del problema.');
+  const sacarFoto = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Toast.show({
+        type: 'error',
+        text1: 'Permiso denegado',
+        text2: 'Necesitamos tu cámara para registrar la evidencia.',
+      });
       return;
     }
 
-    const resultado = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    const result = await ImagePicker.launchCameraAsync({
       allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
+      aspect: [4, 3],
+      quality: 0.4,
     });
 
-    if (!resultado.canceled) {
-      setImagenUri(resultado.assets[0].uri);
+    if (!result.canceled) {
+      setFoto(result.assets[0].uri);
     }
   };
 
-  const handleSiguiente = () => {
-    // Si hay foto, la enviamos al paso 3 por parámetros. Si la salteó, no enviamos nada.
-    router.push({
-      pathname: '/reportar/paso3',
-      params: imagenUri ? { fotoUri: imagenUri } : {}
-    });
-  };
-
   return (
-    <View style={styles.container}>
-      <Stack.Screen options={{ headerShown: false }} />
+    <SafeAreaView style={styles.container}>
+      <Text style={styles.title}>Evidencia fotográfica</Text>
+      <Text style={styles.subtitle}>Sacá una foto del problema (opcional pero recomendado).</Text>
 
-      {/* HEADER CUSTOM */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={28} color={Colors.text} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Nuevo reporte</Text>
-      </View>
-
-      {/* CONTENIDO CENTRAL */}
-      <View style={styles.content}>
-        <View style={styles.imagePlaceholder}>
-          {imagenUri ? (
-            <Image source={{ uri: imagenUri }} style={styles.imagen} />
-          ) : (
-            <MaterialCommunityIcons
-              name="image"
-              size={100}
-              color="rgba(0,0,0,0.6)"
-            />
-          )}
-        </View>
-
-        <TouchableOpacity style={styles.roundButton} onPress={abrirCamara}>
-          <Text style={styles.roundButtonText}>{imagenUri ? 'VOLVER A SACAR' : 'SACAR FOTO'}</Text>
-        </TouchableOpacity>
-
-        {/* BOTÓN PARA SALTEAR (Solo si no sacó foto) */}
-        {!imagenUri && (
-          <TouchableOpacity style={styles.skipButton} onPress={handleSiguiente}>
-            <Text style={styles.skipButtonText}>Saltear este paso</Text>
-          </TouchableOpacity>
+      <TouchableOpacity style={styles.imagePickerBtn} onPress={sacarFoto}>
+        {imageUri ? (
+          <Image source={{ uri: imageUri }} style={styles.imagePreview} />
+        ) : (
+          <View style={styles.placeholderContainer}>
+            <Ionicons name="camera" size={50} color="#1877F2" />
+            <Text style={styles.placeholderText}>Tocar para abrir la cámara</Text>
+          </View>
         )}
-      </View>
+      </TouchableOpacity>
 
-      {/* FOOTER */}
-      <View style={styles.footer}>
-        <TouchableOpacity style={styles.nextButton} onPress={handleSiguiente}>
-          <Text style={styles.nextButtonText}>Siguiente</Text>
-          <Ionicons name="arrow-forward" size={20} color={Colors.surface} style={styles.nextIcon} />
-        </TouchableOpacity>
-      </View>
-    </View>
+      <TouchableOpacity style={styles.btnAvanzar} onPress={() => router.push('/reportar/paso3')}>
+        <Text style={styles.btnText}>Siguiente: Detalles Finales</Text>
+      </TouchableOpacity>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingTop: Spacing.xxl * 1.5,
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.lg,
-  },
-  backButton: {
-    marginRight: Spacing.md,
-  },
-  headerTitle: {
-    fontSize: FontSize.xl,
-    color: Colors.text,
-  },
-  content: {
-    flex: 1,
-    alignItems: 'center',
-    paddingHorizontal: Spacing.xl,
-    paddingTop: Spacing.xl,
-  },
-  imagePlaceholder: {
-    width: '100%',
-    aspectRatio: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.15)',
+  container: { flex: 1, backgroundColor: '#FFF', padding: 20 },
+  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 10, color: '#333' },
+  subtitle: { fontSize: 16, color: '#666', marginBottom: 30 },
+  imagePickerBtn: {
+    backgroundColor: '#F5F7FA',
+    borderWidth: 2,
+    borderColor: '#1877F2',
+    borderStyle: 'dashed',
+    borderRadius: 16,
+    height: 250,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: Spacing.xxl * 2,
-    overflow: 'hidden', // Asegura que la imagen no sobresalga de la caja
+    overflow: 'hidden',
+    marginBottom: 30,
   },
-  imagen: {
-    width: '100%',
-    height: '100%',
-  },
-  roundButton: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: Colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 4,
-  },
-  roundButtonText: {
-    color: Colors.surface,
-    fontSize: FontSize.sm,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  skipButton: {
-    marginTop: Spacing.xl,
-    padding: Spacing.sm,
-  },
-  skipButtonText: {
-    color: 'rgba(0,0,0,0.5)',
-    fontSize: FontSize.md,
-    textDecorationLine: 'underline',
-  },
-  footer: {
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.md,
-    paddingBottom: Spacing.xxl * 1.5,
-    backgroundColor: Colors.background,
-  },
-  nextButton: {
-    backgroundColor: Colors.primary,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: Spacing.md,
-    borderRadius: Radius.lg,
-  },
-  nextButtonText: {
-    color: Colors.surface,
-    fontSize: FontSize.lg,
-    fontWeight: 'bold',
-  },
-  nextIcon: {
-    marginLeft: Spacing.sm,
-  },
+  placeholderContainer: { alignItems: 'center' },
+  placeholderText: { marginTop: 10, color: '#1877F2', fontSize: 16, fontWeight: 'bold' },
+  imagePreview: { width: '100%', height: '100%', resizeMode: 'cover' },
+  btnAvanzar: { backgroundColor: '#1877F2', padding: 16, borderRadius: 12, alignItems: 'center' },
+  btnText: { color: '#FFF', fontSize: 16, fontWeight: 'bold' },
 });
