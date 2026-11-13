@@ -1,0 +1,74 @@
+[33m4ef2c52[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/rediseño-ui[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Merge pull request #30 from idkgassss/feature/menu-lateral
+[33m2a84f80[m Merge branch 'main' into feature/menu-lateral
+[33md3818d3[m feat: integración de menú lateral interactivo y ventana de ayuda
+[33m3368a64[m feat: creacion de reportes con camara, Zustand y Firebase
+[33m592b776[m feat: creación de reportes con cámara, Zustand y Firebase
+[33m6b9b0b3[m Merge pull request #28 from idkgassss/feature/firebase-app
+[33m6175036[m Merge branch 'main' into feature/firebase-app
+[33m6fef63e[m feat: integracion de Firebase y listado en tiempo real en reportes
+[33mee0029b[m Merge pull request #27 from idkgassss/feature/ajustes-perfil
+[33mb368212[m refactor: limpieza final del menu de perfil
+[33m6bff15b[m Merge branch 'main' of https://github.com/idkgassss/Mi-Barrio-APP into feature/firebase-app B :q q :q
+[33m691de24[m feat: servicio de reportes y custom hook
+[33mf511f72[m Merge pull request #26 from idkgassss/feature/firebase-app
+[33m5cf8eb9[m feat: integracion de Firebase Auth SecureStore y Google Sign-in
+[33m99b20b1[m Merge pull request #25 from idkgassss/feature/remover-campana
+[33m82fa34c[m refactor: remover icono de notificaciones de la pantalla de reportes
+[33mb4380f2[m Merge pull request #24 from idkgassss/feature/remover-campana
+[33mb1ec020[m[33m ([m[1;31morigin/feature/remover-campana[m[33m)[m refactor: remover icono de notificaciones del header para limpiar la interfaz
+[33m88e3529[m Merge pull request #23 from idkgassss/feature/mejoras-ui
+[33ma5f2cd3[m[33m ([m[1;31morigin/feature/mejoras-ui[m[33m, [m[1;32mfeature/mejoras-ui[m[33m)[m feat: rediseño de la pantalla de reportes y vista de detalles
+[33mf9ac280[m Merge pull request #21 from idkgassss/feature/gps-ubicacion
+[33m10b95b3[m[33m ([m[1;31morigin/feature/rediseño-ui[m[33m, [m[1;31morigin/feature/gps-ubicacion[m[33m, [m[1;31morigin/feature/actualizacion-final[m[33m, [m[1;32mfeature/gps-ubicacion[m[33m)[m feat: integracion de gps real y pantalla de exito en reportes
+[33m8d3fc62[m[33m ([m[1;31morigin/feature/camara[m[33m, [m[1;32mfeature/camara[m[33m)[m feat: flujo de creacion de reportes terminado con camara
+[33m38e0afa[m[33m ([m[1;32mmain[m[33m)[m feat: pantalla de perfil terminada
+[33mcaadfaf[m Merge pull request #20 from idkgassss/feature/tutorial-bienvenida
+[33m98f26c9[m[33m ([m[1;31morigin/feature/tutorial-bienvenida[m[33m)[m add: pantalla de tutorial de 3 pasos
+[33m5464aae[m fix: actualizar dependencias a Expo SDK 58 y resolver conflictos
+[33m3263108[m Merge pull request #19 from idkgassss/feature/flujo-wizard
+[33m54f72d8[m[33m ([m[1;31morigin/feature/flujo-wizard[m[33m)[m docs: correcion de errores minimos antes de defensa
+[33m6a2e1bb[m Merge pull request #17 from idkgassss/feature/flujo-wizard
+[33m3f59411[m feat: flujo en base a wizard completo
+[33m37169c7[m[33m ([m[1;31morigin/feature/tabs-y-header[m[33m)[m feat: finaliza flujo del wizard de reportes
+[33meba2d39[m Merge pull request #16 from idkgassss/feature/tabs-y-header
+[33ma94a58a[m feat: login final
+[33m01bc53b[m Merge pull request #15 from idkgassss/feature/tabs-y-header
+[33me630bf3[m docs y feat: actualiza README y maquetación del login
+[33mb2fc17b[m Merge pull request #14 from idkgassss/feature/tabs-y-header
+[33m9128699[m feat: completa tabs navigator y header personalizado
+[33m9905bd4[m Merge pull request #13 from idkgassss/feature/auth-layout
+[33m1b14c8a[m[33m ([m[1;31morigin/feature/auth-layout[m[33m)[m feat: agrega layout de autenticacion y pantalla de login
+[33m9aad0b2[m Merge pull request #12 from idkgassss/fix/parametros-ruta
+[33m6c07613[m[33m ([m[1;31morigin/fix/parametros-ruta[m[33m)[m Merge branch 'main' into fix/parametros-ruta
+[33m8bd7836[m fix: imagenes dinamicas en los reportes
+[33m8fbfa72[m Merge pull request #11 from idkgassss/feature/perfil
+[33m43fed83[m[33m ([m[1;31morigin/feature/perfil[m[33m)[m feat: agrega pantalla de perfil con cierre de sesion
+[33m8ee8705[m Merge pull request #10 from idkgassss/feature/mapa
+[33ma42bd52[m[33m ([m[1;31morigin/feature/mapa[m[33m)[m feat: agregue diseño de mapa estatico
+[33m51d3d6c[m Merge pull request #9 from idkgassss/feature/detalle-reporte
+[33m4fef237[m[33m ([m[1;31morigin/feature/detalle-reporte[m[33m)[m feat: agrega pantalla dinamica de detalle de reporte
+[33m847b39a[m Merge pull request #8 from idkgassss/feature/lista-reportes
+[33m2be2fc9[m feat: agregue una  lista dinamica de reportes mock
+[33mccab3d3[m Merge pull request #7 from idkgassss/feature/flujo-reportes
+[33m3bf753f[m[33m ([m[1;31morigin/feature/flujo-reportes[m[33m)[m feat: agregue el flujo completo de reportes con fix de safe area
+[33maa99316[m Merge pull request #6 from idkgassss/feature/tab-navigator
+[33m7251f0e[m[33m ([m[1;31morigin/feature/tab-navigator[m[33m)[m feat: agregue la barra inferior de navegacion  y pantallas de inicio, mapa y perfil (falta agregar las funcionalidades a las pantallas)
+[33ma0edf64[m Merge pull request #5 from idkgassss/feature/auth-login
+[33m1df6832[m[33m ([m[1;31morigin/feature/auth-login[m[33m)[m feat: pimera pantalla agregda con layouts y pantalla de login
+[33mc13dd44[m feat: Acá agrega layout raiz y pantalla de login
+[33m7930c0d[m chore: configuracion inicial app.json y package.json
+[33mc9059ca[m Merge pull request #4 from idkgassss/feature/lista-reportes
+[33m91b900a[m feat: implementacion de prueba de lista dinamica de reportes con FlatList y useState
+[33me14ea57[m feat: implementacion de prueba de lista dinamica de reportes con FlatList y useState
+[33ma18e739[m Merge pull request #3 from idkgassss/feature/pantalla-home
+[33mbd5bbff[m[33m ([m[1;31morigin/feature/pantalla-home[m[33m)[m feat: crear estructura inicial y pantalla home estatica
+[33mcdaebf2[m Merge pull request #2 from idkgassss/setup/entorno-inicial
+[33me1eec27[m[33m ([m[1;31morigin/setup/entorno-inicial[m[33m)[m chore: resolver conflicto en README
+[33m12e7bde[m chore: inicializar proyecto expo
+[33m0415026[m chore: configurar prettier y eslint para todos
+[33mf230bd6[m Initial commit
+[33m41a2bdc[m Merge pull request #1 from idkgassss/chore/configuracion-editor
+[33m4f13b66[m actualización del README
+[33mfd8cd1c[m[33m ([m[1;31morigin/chore/configuracion-editor[m[33m)[m chore: configurar prettier y eslint para todos
+[33md793b64[m primer commit de la rama inicial
+[33m1b6f818[m Initial commit
