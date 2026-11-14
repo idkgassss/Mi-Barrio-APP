@@ -1,41 +1,62 @@
 // components/TarjetaReporte.tsx
+import React, { memo } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
-import { Reporte } from '@/types';
+import { Reporte } from '@/hooks/useReportes'; // 
 import { Colors, Spacing, FontSize, Radius } from '@/constants/theme';
+
 
 interface Props {
   reporte: Reporte;
   onPress: (r: Reporte) => void;
-  onFavorito: (id: string) => void;
+  onFavorito?: (id: string) => void;
 }
 
-export function TarjetaReporte({ reporte, onPress, onFavorito }: Props) {
+function TarjetaReporteBase({ reporte, onPress, onFavorito }: Props) {
+  // Verificamos el estado según nuestro Zod schema (estado: 'Pendiente' | 'En proceso' | 'Resuelto')
+  const esResuelto = reporte.estado === 'Resuelto';
+
   return (
     <TouchableOpacity
       style={styles.card}
       onPress={() => onPress(reporte)}
       activeOpacity={0.85}
+      accessibilityRole="button"
+      accessibilityLabel={`Reporte: ${reporte.titulo}, categoría ${reporte.categoria}, estado ${reporte.estado}`}
     >
-      <Image source={{ uri: reporte.imagen }} style={styles.imagen} />
+      <Image 
+        source={{ uri: reporte.imagen }} 
+        style={styles.imagen} 
+        accessibilityRole="image"
+        accessibilityLabel={`Foto de ${reporte.titulo}`}
+      />
       
       <View style={styles.info}>
         <Text style={styles.titulo}>{reporte.titulo}</Text>
-        <Text style={styles.categoria}>{reporte.categoria.toUpperCase()}</Text>
+        <Text style={styles.categoria}>{reporte.categoria?.toUpperCase()}</Text>
 
-        {/* Conditional Rendering: Renderizamos distintos textos y colores según el estado */}
-        {reporte.solucionado ? (
-          <Text style={styles.resuelto}>✓ Solucionado</Text>
+        {/* Renderizado condicional adaptado al campo 'estado' de Firestore */}
+        {esResuelto ? (
+          <Text style={styles.resuelto}>✓ Resuelto</Text>
         ) : (
-          <Text style={styles.pendiente}>⚠ Pendiente</Text>
+          <Text style={styles.pendiente}>⚠ {reporte.estado || 'Pendiente'}</Text>
         )}
       </View>
 
-      <TouchableOpacity onPress={() => onFavorito(reporte.id)}>
-        <Text style={styles.icono}>⭐</Text>
-      </TouchableOpacity>
+      {onFavorito && (
+        <TouchableOpacity 
+          onPress={() => onFavorito(reporte.id)}
+          accessibilityRole="button"
+          accessibilityLabel="Marcar como favorito"
+        >
+          <Text style={styles.icono}>⭐</Text>
+        </TouchableOpacity>
+      )}
     </TouchableOpacity>
   );
 }
+
+// Envolver en React.memo para evitar re-renders en la FlashList
+export const TarjetaReporte = memo(TarjetaReporteBase);
 
 const styles = StyleSheet.create({
   card: {

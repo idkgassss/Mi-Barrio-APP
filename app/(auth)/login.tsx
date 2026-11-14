@@ -50,7 +50,7 @@ export default function LoginScreen() {
             </TouchableOpacity>
 
             <View style={styles.footerInicial}>
-              <Text style={styles.textoFooterInicial}>No tenes cuenta? </Text>
+              <Text style={styles.textoFooterInicial}>¿No tenes cuenta?</Text>
               <TouchableOpacity onPress={() => abrirTarjeta(false)}>
                 <Text style={styles.linkFooterInicial}>Registrate</Text>
               </TouchableOpacity>
@@ -104,7 +104,7 @@ export default function LoginScreen() {
 
               <View style={styles.footerTarjeta}>
                 <Text style={styles.textoFooterTarjeta}>
-                  {isLogin ? 'No tenes cuenta? ' : 'Ya tenes cuenta? '}
+                  {isLogin ? '¿No tenes cuenta? ' : '¿Ya tenes cuenta? '}
                 </Text>
                 <TouchableOpacity onPress={() => setIsLogin(!isLogin)}>
                   <Text style={styles.linkFooterTarjeta}>{isLogin ? 'Registrate' : 'Ingresá'}</Text>

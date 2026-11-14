@@ -1,4 +1,4 @@
-// stores/useUsuarioStore.ts
+// store/useUsuarioStore.ts
 import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
 
@@ -22,15 +22,13 @@ const USER_ID_KEY = 'session_user_id';
 export const useUsuarioStore = create<UsuarioStore>((set) => ({
   usuario: null,
   isLoggedIn: false,
-
-  login: async (user, token) => {
+  login: async (user: Usuario, token?: string) => {
     if (token) {
       await SecureStore.setItemAsync(TOKEN_KEY, token);
       await SecureStore.setItemAsync(USER_ID_KEY, user.id);
     }
     set({ usuario: user, isLoggedIn: true });
   },
-
   logout: async () => {
     await SecureStore.deleteItemAsync(TOKEN_KEY);
     await SecureStore.deleteItemAsync(USER_ID_KEY);
