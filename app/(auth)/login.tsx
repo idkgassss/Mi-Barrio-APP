@@ -1,3 +1,4 @@
+// app/(auth)/login.tsx
 import { useState } from 'react';
 import {
   View,
@@ -7,24 +8,63 @@ import {
   Image,
   TouchableOpacity,
   TextInput,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
-import { useRouter } from 'expo-router';
-// Importación estricta de variables de diseño
 import { Colors, Spacing, FontSize, Radius } from '@/constants/theme';
+import { authService } from '../../services/authService';
 
 export default function LoginScreen() {
-  const router = useRouter();
+  // Estados del formulario
+  const [isLogin, setIsLogin] = useState(true); // true = Login, false = Registro
+  const [isLoading, setIsLoading] = useState(false);
 
-  const [mostrarTarjeta, setMostrarTarjeta] = useState(false);
-  const [isLogin, setIsLogin] = useState(true);
+  // Datos que escribe el usuario
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [nombre, setNombre] = useState(''); // Solo se usa al registrarse
 
-  const handleLoginFinal = () => {
-    router.replace('/(tabs)');
+  // Función para Correo/Contraseña
+  const handleEmailSubmit = async () => {
+    if (!email || !password) {
+      Alert.alert('Error', 'Por favor completá todos los campos.');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      if (isLogin) {
+        // Modo Iniciar Sesión
+        await authService.loginWithEmail(email, password);
+      } else {
+        // Modo Registrarse
+        if (!nombre) {
+          Alert.alert('Error', 'Por favor ingresá tu nombre.');
+          setIsLoading(false);
+          return;
+        }
+        await authService.registerWithEmail(email, password, nombre);
+      }
+      // Si salió bien, el _layout.tsx lo redirige solo.
+    } catch (error: any) {
+      console.error(error);
+      Alert.alert('Error', 'Ocurrió un problema. Verificá tus datos.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const abrirTarjeta = (modoLogin: boolean) => {
-    setIsLogin(modoLogin);
-    setMostrarTarjeta(true);
+  // Función para Google
+  const handleGoogleLogin = async () => {
+    setIsLoading(true);
+    try {
+      await authService.signInWithGoogle();
+    } catch (error: any) {
+      console.error(error);
+      Alert.alert('Error', 'No se pudo iniciar sesión con Google.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -34,7 +74,7 @@ export default function LoginScreen() {
       resizeMode="cover"
     >
       <View style={styles.overlay}>
-        <View style={[styles.logoContainer, mostrarTarjeta && styles.logoContainerSubido]}>
+        <View style={styles.logoContainer}>
           <Image
             source={require('../../assets/logo.png')}
             style={styles.logo}
@@ -42,149 +82,106 @@ export default function LoginScreen() {
           />
         </View>
 
-        {!mostrarTarjeta ? (
-          /* VISTA 1: PANTALLA INICIAL */
-          <View style={styles.bottomContainer}>
-            <TouchableOpacity style={styles.botonPrincipal} onPress={() => abrirTarjeta(true)}>
-              <Text style={styles.botonPrincipalTexto}>Iniciar Sesion</Text>
+        <View style={styles.cardWrapper}>
+          <View style={styles.card}>
+            {/* Pestañas (Login / Registro) */}
+            <View style={styles.toggleContainer}>
+              <TouchableOpacity
+                style={[styles.toggleButton, isLogin && styles.toggleButtonActive]}
+                onPress={() => setIsLogin(true)}
+              >
+                <Text style={[styles.toggleText, isLogin && styles.toggleTextActive]}>
+                  Ingresar
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.toggleButton, !isLogin && styles.toggleButtonActive]}
+                onPress={() => setIsLogin(false)}
+              >
+                <Text style={[styles.toggleText, !isLogin && styles.toggleTextActive]}>
+                  Registrarme
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.welcomeText}>
+              {isLogin ? '¡Hola de nuevo!' : 'Crear una cuenta'}
+            </Text>
+
+            {/* Formulario Clásico */}
+            {!isLogin && (
+              <TextInput
+                style={styles.input}
+                placeholder="Tu Nombre"
+                placeholderTextColor={Colors.text}
+                value={nombre}
+                onChangeText={setNombre}
+              />
+            )}
+            <TextInput
+              style={styles.input}
+              placeholder="E-mail"
+              placeholderTextColor={Colors.text}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              value={email}
+              onChangeText={setEmail}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Contraseña"
+              placeholderTextColor={Colors.text}
+              secureTextEntry
+              value={password}
+              onChangeText={setPassword}
+            />
+
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={handleEmailSubmit}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <ActivityIndicator color={Colors.surface} />
+              ) : (
+                <Text style={styles.actionButtonText}>{isLogin ? 'Ingresar' : 'Registrarme'}</Text>
+              )}
             </TouchableOpacity>
 
-            <View style={styles.footerInicial}>
-              <Text style={styles.textoFooterInicial}>¿No tenes cuenta?</Text>
-              <TouchableOpacity onPress={() => abrirTarjeta(false)}>
-                <Text style={styles.linkFooterInicial}>Registrate</Text>
-              </TouchableOpacity>
+            {/* Separador */}
+            <View style={styles.separatorContainer}>
+              <View style={styles.separatorLine} />
+              <Text style={styles.separatorText}>o</Text>
+              <View style={styles.separatorLine} />
             </View>
+
+            {/* Botón de Google */}
+            <TouchableOpacity
+              style={styles.googleButton}
+              onPress={handleGoogleLogin}
+              disabled={isLoading}
+            >
+              <Text style={styles.googleButtonText}>Continuar con Google</Text>
+            </TouchableOpacity>
           </View>
-        ) : (
-          /* VISTA 2: TARJETA BLANCA (Ahora envuelta en cardWrapper para centrarla) */
-          <View style={styles.cardWrapper}>
-            <View style={styles.card}>
-              <View style={styles.toggleContainer}>
-                <TouchableOpacity
-                  style={[styles.toggleButton, isLogin && styles.toggleButtonActive]}
-                  onPress={() => setIsLogin(true)}
-                >
-                  <Text style={[styles.toggleText, isLogin && styles.toggleTextActive]}>
-                    Iniciar Sesion
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.toggleButton, !isLogin && styles.toggleButtonActive]}
-                  onPress={() => setIsLogin(false)}
-                >
-                  <Text style={[styles.toggleText, !isLogin && styles.toggleTextActive]}>
-                    Registrarse
-                  </Text>
-                </TouchableOpacity>
-              </View>
-
-              <Text style={styles.welcomeText}>Bienvenido a MI Barrio</Text>
-
-              <TextInput
-                style={styles.input}
-                placeholder="E-mail"
-                placeholderTextColor={Colors.text}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Contraseña"
-                placeholderTextColor={Colors.text}
-                secureTextEntry
-              />
-
-              <TouchableOpacity style={styles.actionButton} onPress={handleLoginFinal}>
-                <Text style={styles.actionButtonText}>
-                  {isLogin ? 'Iniciar Sesion' : 'Registrarse'}
-                </Text>
-              </TouchableOpacity>
-
-              <View style={styles.footerTarjeta}>
-                <Text style={styles.textoFooterTarjeta}>
-                  {isLogin ? '¿No tenes cuenta? ' : '¿Ya tenes cuenta? '}
-                </Text>
-                <TouchableOpacity onPress={() => setIsLogin(!isLogin)}>
-                  <Text style={styles.linkFooterTarjeta}>{isLogin ? 'Registrate' : 'Ingresá'}</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        )}
+        </View>
       </View>
     </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-  },
+  background: { flex: 1, width: '100%', height: '100%' },
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(28, 56, 111, 0.7)',
     paddingHorizontal: Spacing.lg,
-    // Un margen general en la base para que nada toque el borde del celular jamás
     paddingBottom: Spacing.xxl,
   },
+  logoContainer: { flex: 0.6, justifyContent: 'center', alignItems: 'center' },
+  logo: { width: 250, height: 90 },
+  cardWrapper: { flex: 1.4, justifyContent: 'flex-start' },
 
-  logoContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  logoContainerSubido: {
-    flex: 0,
-    marginTop: Spacing.xxl * 2, // Lo despega del borde superior de la pantalla
-    marginBottom: Spacing.sm,
-  },
-  logo: {
-    width: 250,
-    height: 90,
-  },
-
-  bottomContainer: {
-    width: '100%',
-    alignItems: 'center',
-  },
-  botonPrincipal: {
-    backgroundColor: Colors.primary,
-    width: '100%',
-    paddingVertical: Spacing.md,
-    borderRadius: Radius.lg,
-    alignItems: 'center',
-    marginBottom: Spacing.md,
-    borderWidth: 1,
-    borderColor: '#000',
-  },
-  botonPrincipalTexto: {
-    color: Colors.surface,
-    fontSize: FontSize.lg,
-    fontWeight: 'bold',
-  },
-  footerInicial: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  textoFooterInicial: {
-    color: Colors.surface,
-    fontSize: FontSize.md,
-  },
-  linkFooterInicial: {
-    color: Colors.primary,
-    fontSize: FontSize.md,
-    textDecorationLine: 'underline',
-  },
-
-  /* --- NUEVO CONTENEDOR PARA CENTRAR LA TARJETA --- */
-  cardWrapper: {
-    flex: 1,
-    justifyContent: 'center', // Alinea la tarjeta verticalmente en el medio
-  },
   card: {
     backgroundColor: Colors.surface,
     borderRadius: Radius.lg,
@@ -208,20 +205,16 @@ const styles = StyleSheet.create({
     borderRadius: Radius.lg,
     alignItems: 'center',
   },
-  toggleButtonActive: {
-    backgroundColor: Colors.primary,
-  },
-  toggleText: {
-    color: Colors.text,
-    fontSize: FontSize.md,
-  },
-  toggleTextActive: {
-    color: Colors.surface,
-  },
+  toggleButtonActive: { backgroundColor: Colors.primary },
+  toggleText: { color: Colors.text, fontSize: FontSize.md },
+  toggleTextActive: { color: Colors.surface, fontWeight: 'bold' },
+
   welcomeText: {
     fontSize: FontSize.lg,
     color: Colors.text,
     marginBottom: Spacing.lg,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
   input: {
     borderBottomWidth: 1,
@@ -231,6 +224,7 @@ const styles = StyleSheet.create({
     fontSize: FontSize.md,
     color: Colors.text,
   },
+
   actionButton: {
     backgroundColor: Colors.primary,
     borderRadius: Radius.lg,
@@ -238,25 +232,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: Colors.text,
-    marginTop: Spacing.sm,
     marginBottom: Spacing.md,
   },
-  actionButtonText: {
-    color: Colors.surface,
-    fontSize: FontSize.lg,
-    fontWeight: 'bold',
+  actionButtonText: { color: Colors.surface, fontSize: FontSize.lg, fontWeight: 'bold' },
+
+  separatorContainer: { flexDirection: 'row', alignItems: 'center', marginVertical: Spacing.sm },
+  separatorLine: { flex: 1, height: 1, backgroundColor: Colors.text, opacity: 0.3 },
+  separatorText: { marginHorizontal: Spacing.md, color: Colors.text, opacity: 0.7 },
+
+  googleButton: {
+    backgroundColor: '#fff',
+    borderRadius: Radius.lg,
+    paddingVertical: Spacing.md,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    marginTop: Spacing.sm,
   },
-  footerTarjeta: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
-  textoFooterTarjeta: {
-    color: Colors.text,
-    fontSize: FontSize.sm,
-  },
-  linkFooterTarjeta: {
-    color: Colors.primary,
-    fontSize: FontSize.sm,
-    textDecorationLine: 'underline',
-  },
+  googleButtonText: { color: '#333', fontSize: FontSize.md, fontWeight: 'bold' },
 });

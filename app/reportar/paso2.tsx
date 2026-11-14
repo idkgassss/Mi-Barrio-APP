@@ -11,9 +11,12 @@ export default function Paso2Screen() {
 
   const abrirCamara = async () => {
     const permisos = await ImagePicker.requestCameraPermissionsAsync();
-    
+
     if (!permisos.granted) {
-      Alert.alert('Permiso denegado', 'Necesitamos acceso a la cámara para tomar la foto del problema.');
+      Alert.alert(
+        'Permiso denegado',
+        'Necesitamos acceso a la cámara para tomar la foto del problema.'
+      );
       return;
     }
 
@@ -21,19 +24,21 @@ export default function Paso2Screen() {
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [1, 1],
-      quality: 0.8,
+      quality: 0.2, // COMPRESIÓN FUERTE (20%): Vital para que pese menos de 1MB y entre en Firestore
+      base64: true, // Convertimos la foto a texto plano
     });
 
-    if (!resultado.canceled) {
-      setImagenUri(resultado.assets[0].uri);
+    if (!resultado.canceled && resultado.assets[0].base64) {
+      // Armamos el formato estándar de imagen en base64
+      const base64Uri = `data:image/jpeg;base64,${resultado.assets[0].base64}`;
+      setImagenUri(base64Uri);
     }
   };
 
   const handleSiguiente = () => {
-    // Si hay foto, la enviamos al paso 3 por parámetros. Si la salteó, no enviamos nada.
     router.push({
       pathname: '/reportar/paso3',
-      params: imagenUri ? { fotoUri: imagenUri } : {}
+      params: imagenUri ? { fotoUri: imagenUri } : {},
     });
   };
 
@@ -55,11 +60,7 @@ export default function Paso2Screen() {
           {imagenUri ? (
             <Image source={{ uri: imagenUri }} style={styles.imagen} />
           ) : (
-            <MaterialCommunityIcons
-              name="image"
-              size={100}
-              color="rgba(0,0,0,0.6)"
-            />
+            <MaterialCommunityIcons name="image" size={100} color="rgba(0,0,0,0.6)" />
           )}
         </View>
 
@@ -67,7 +68,6 @@ export default function Paso2Screen() {
           <Text style={styles.roundButtonText}>{imagenUri ? 'VOLVER A SACAR' : 'SACAR FOTO'}</Text>
         </TouchableOpacity>
 
-        {/* BOTÓN PARA SALTEAR (Solo si no sacó foto) */}
         {!imagenUri && (
           <TouchableOpacity style={styles.skipButton} onPress={handleSiguiente}>
             <Text style={styles.skipButtonText}>Saltear este paso</Text>
@@ -87,10 +87,7 @@ export default function Paso2Screen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
+  container: { flex: 1, backgroundColor: Colors.background },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -98,19 +95,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing.lg,
   },
-  backButton: {
-    marginRight: Spacing.md,
-  },
-  headerTitle: {
-    fontSize: FontSize.xl,
-    color: Colors.text,
-  },
-  content: {
-    flex: 1,
-    alignItems: 'center',
-    paddingHorizontal: Spacing.xl,
-    paddingTop: Spacing.xl,
-  },
+  backButton: { marginRight: Spacing.md },
+  headerTitle: { fontSize: FontSize.xl, color: Colors.text },
+  content: { flex: 1, alignItems: 'center', paddingHorizontal: Spacing.xl, paddingTop: Spacing.xl },
   imagePlaceholder: {
     width: '100%',
     aspectRatio: 1,
@@ -118,12 +105,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: Spacing.xxl * 2,
-    overflow: 'hidden', // Asegura que la imagen no sobresalga de la caja
+    overflow: 'hidden',
   },
-  imagen: {
-    width: '100%',
-    height: '100%',
-  },
+  imagen: { width: '100%', height: '100%' },
   roundButton: {
     width: 120,
     height: 120,
@@ -139,10 +123,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
   },
-  skipButton: {
-    marginTop: Spacing.xl,
-    padding: Spacing.sm,
-  },
+  skipButton: { marginTop: Spacing.xl, padding: Spacing.sm },
   skipButtonText: {
     color: 'rgba(0,0,0,0.5)',
     fontSize: FontSize.md,
@@ -162,12 +143,6 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     borderRadius: Radius.lg,
   },
-  nextButtonText: {
-    color: Colors.surface,
-    fontSize: FontSize.lg,
-    fontWeight: 'bold',
-  },
-  nextIcon: {
-    marginLeft: Spacing.sm,
-  },
+  nextButtonText: { color: Colors.surface, fontSize: FontSize.lg, fontWeight: 'bold' },
+  nextIcon: { marginLeft: Spacing.sm },
 });
