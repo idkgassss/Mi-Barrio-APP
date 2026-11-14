@@ -31,18 +31,30 @@
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "Allow Mi Barrio to use your location."
+          "locationAlwaysAndWhenInUsePermission": "Permite a Mi Barrio usar tu ubicación."
         }
       ],
       [
         "expo-image-picker",
         {
-          "photosPermission": "Allow Mi Barrio to access your photos."
+          "photosPermission": "Permite a Mi Barrio acceder a tus fotos.",
+          "cameraPermission": "Permite a Mi Barrio usar tu cámara para los reportes."
         }
       ],
       "expo-status-bar",
       "expo-secure-store",
-      "@react-native-google-signin/google-signin"
-    ]
+      "@react-native-google-signin/google-signin",
+      "expo-dev-client"
+    ],
+    "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "9c730584-2290-4948-a1d2-c5947c0ab24a"
+      }
+    }
   }
 }

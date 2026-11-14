@@ -1,10 +1,8 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth, initializeAuth } from 'firebase/auth';
+import { initializeApp, getApps, getApp } from 'firebase/app';
 // @ts-ignore: Falso error de tipado de Firebase en Expo
-import { getReactNativePersistence } from 'firebase/auth';
-import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
+import { initializeAuth, getAuth, getReactNativePersistence, Auth } from 'firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getFirestore } from 'firebase/firestore';
-import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
   apiKey: process.env.EXPO_PUBLIC_FB_API_KEY,
@@ -15,14 +13,20 @@ const firebaseConfig = {
   appId: process.env.EXPO_PUBLIC_FB_APP_ID,
 };
 
-// 1. Inicializar la App
-export const app = initializeApp(firebaseConfig);
+// 1. Evita duplicar la app si Expo recarga en caliente
+export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
-// 2. Inicializar Auth de forma segura para React Native (Mobile)
-export const auth = initializeAuth(app, {
-  persistence: getReactNativePersistence(ReactNativeAsyncStorage)
-});
+// 2. Inicializa Auth con persistencia local sin romperse al recargar
+let authInstance: Auth;
+try {
+  authInstance = initializeAuth(app, {
+    persistence: getReactNativePersistence(AsyncStorage),
+  });
+} catch {
+  authInstance = getAuth(app);
+}
 
-// 3. Inicializar el resto de servicios
+export const auth = authInstance;
+
+// 3. Inicializar Firestore
 export const db = getFirestore(app);
-export const storage = getStorage(app);

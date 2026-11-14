@@ -3,15 +3,19 @@ import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView } from 'rea
 import { Tabs, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, Radius } from '@/constants/theme';
-
-// Importamos el menú lateral que ya armaste
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { db, auth } from '../../services/firebase';
 import MenuLateral from '../../components/MenuLateral';
 
 export default function HomeScreen() {
   const router = useRouter();
-  
-  // Estado para controlar si el menú lateral está visible
   const [menuVisible, setMenuVisible] = useState(false);
+
+  const [contadores, setContadores] = useState({
+    pendientes: 0,
+    enProceso: 0,
+    solicitados: 0,
+  });
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -21,14 +25,40 @@ export default function HomeScreen() {
     return () => clearTimeout(timer);
   }, []);
 
+  useEffect(() => {
+    const usuarioActual = auth.currentUser;
+    if (!usuarioActual) return;
+
+    const q = query(collection(db, 'reportes'), where('usuarioId', '==', usuarioActual.uid));
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      let pendientes = 0;
+      let enProceso = 0;
+      let solicitados = 0;
+
+      snapshot.docs.forEach((doc) => {
+        const estado = (doc.data().estado || 'pendiente').toLowerCase();
+        if (estado === 'solicitado' || estado === 'solucionado') {
+          solicitados++;
+        } else if (estado === 'en proceso' || estado === 'proceso') {
+          enProceso++;
+        } else {
+          pendientes++;
+        }
+      });
+
+      setContadores({ pendientes, enProceso, solicitados });
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Tabs.Screen options={{ headerShown: false }} />
 
-      {/*HEADER Menú y Logo*/}
       <View style={styles.header}>
-        {/* Le agregamos la función onPress y un hitSlop para que sea fácil de tocar */}
-        <TouchableOpacity 
+        <TouchableOpacity
           onPress={() => setMenuVisible(true)}
           hitSlop={{ top: 25, bottom: 25, left: 25, right: 25 }}
         >
@@ -37,30 +67,25 @@ export default function HomeScreen() {
 
         <Image source={require('../../assets/logo.png')} style={styles.logo} resizeMode="contain" />
 
-        {/* View invisible para mantener el logo perfectamente centrado */}
         <View style={{ width: 28 }} />
       </View>
 
-      {/*TÍTULO PRINCIPAL */}
       <Text style={styles.welcomeTitle}>Bienvenido a Mi Barrio</Text>
 
-      {/*SECCIÓN: MIS REPORTES */}
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Mis Reportes</Text>
-        {/* AQUÍ ESTÁ EL CAMBIO: El botón ahora redirige a /reportes */}
         <TouchableOpacity onPress={() => router.push('/reportes')}>
           <Text style={styles.verTodosLink}>Ver todos</Text>
         </TouchableOpacity>
       </View>
 
-      {/*TARJETA GRIS DE RESUMEN*/}
       <View style={styles.summaryCard}>
         <View style={styles.summaryRow}>
           <View style={styles.rowLeft}>
             <View style={[styles.dot, { backgroundColor: Colors.danger || '#EF4444' }]} />
             <Text style={styles.rowText}>Pendientes</Text>
           </View>
-          <Text style={styles.rowCount}>2</Text>
+          <Text style={styles.rowCount}>{contadores.pendientes}</Text>
         </View>
 
         <View style={styles.summaryRow}>
@@ -68,19 +93,18 @@ export default function HomeScreen() {
             <View style={[styles.dot, { backgroundColor: Colors.warning || '#F97316' }]} />
             <Text style={styles.rowText}>En proceso</Text>
           </View>
-          <Text style={styles.rowCount}>1</Text>
+          <Text style={styles.rowCount}>{contadores.enProceso}</Text>
         </View>
 
         <View style={styles.summaryRow}>
           <View style={styles.rowLeft}>
             <View style={[styles.dot, { backgroundColor: Colors.success || '#22C55E' }]} />
-            <Text style={styles.rowText}>Solucionados</Text>
+            <Text style={styles.rowText}>Solicitados</Text>
           </View>
-          <Text style={styles.rowCount}>4</Text>
+          <Text style={styles.rowCount}>{contadores.solicitados}</Text>
         </View>
       </View>
 
-      {/* BOTÓN DE ACCIÓN PRINCIPAL */}
       <View style={styles.buttonContainer}>
         <TouchableOpacity
           style={styles.reportButton}
@@ -90,20 +114,13 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* COMPONENTE DEL MENÚ LATERAL */}
-      <MenuLateral
-        visible={menuVisible}
-        onClose={() => setMenuVisible(false)}
-      />
+      <MenuLateral visible={menuVisible} onClose={() => setMenuVisible(false)} />
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
+  container: { flex: 1, backgroundColor: Colors.background },
   content: {
     paddingTop: Spacing.xxl * 1.5,
     paddingHorizontal: Spacing.lg,
@@ -115,10 +132,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: Spacing.xxl,
   },
-  logo: {
-    width: 140,
-    height: 40,
-  },
+  logo: { width: 140, height: 40 },
   welcomeTitle: {
     fontSize: FontSize.xl,
     color: Colors.text,
@@ -131,15 +145,8 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     marginBottom: Spacing.md,
   },
-  sectionTitle: {
-    fontSize: FontSize.md,
-    color: Colors.text,
-  },
-  verTodosLink: {
-    fontSize: FontSize.sm,
-    color: Colors.primary,
-    textDecorationLine: 'underline',
-  },
+  sectionTitle: { fontSize: FontSize.md, color: Colors.text },
+  verTodosLink: { fontSize: FontSize.sm, color: Colors.primary, textDecorationLine: 'underline' },
   summaryCard: {
     backgroundColor: 'rgba(0, 0, 0, 0.05)',
     borderRadius: Radius.lg,
@@ -155,29 +162,11 @@ const styles = StyleSheet.create({
     borderRadius: Radius.md,
     marginBottom: Spacing.sm,
   },
-  rowLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  dot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginRight: Spacing.sm,
-  },
-  rowText: {
-    fontSize: FontSize.md,
-    color: Colors.text,
-  },
-  rowCount: {
-    fontSize: FontSize.md,
-    color: Colors.text,
-    fontWeight: 'bold',
-  },
-  buttonContainer: {
-    alignItems: 'center',
-    marginTop: Spacing.lg,
-  },
+  rowLeft: { flexDirection: 'row', alignItems: 'center' },
+  dot: { width: 12, height: 12, borderRadius: 6, marginRight: Spacing.sm },
+  rowText: { fontSize: FontSize.md, color: Colors.text },
+  rowCount: { fontSize: 16, color: Colors.text, fontWeight: 'bold' },
+  buttonContainer: { alignItems: 'center', marginTop: Spacing.lg },
   reportButton: {
     backgroundColor: Colors.primary,
     width: '100%',
@@ -185,9 +174,5 @@ const styles = StyleSheet.create({
     borderRadius: Radius.lg,
     alignItems: 'center',
   },
-  reportButtonText: {
-    color: Colors.surface,
-    fontSize: FontSize.lg,
-    fontWeight: 'bold',
-  },
+  reportButtonText: { color: Colors.surface, fontSize: FontSize.lg, fontWeight: 'bold' },
 });

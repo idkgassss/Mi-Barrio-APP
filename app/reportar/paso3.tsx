@@ -11,11 +11,14 @@ import {
   FlatList,
   Image,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { useRouter, Stack, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import { Colors, Spacing, FontSize, Radius } from '@/constants/theme';
+import { collection, addDoc } from 'firebase/firestore';
+import { db, auth } from '../../services/firebase';
 
 const OPCIONES_TIEMPO = [
   'Hace unos días',
@@ -34,45 +37,59 @@ export default function Paso3Screen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [ubicacion, setUbicacion] = useState<string | null>(null);
   const [cargandoUbicacion, setCargandoUbicacion] = useState(false);
+  const [cargandoEnvio, setCargandoEnvio] = useState(false);
 
-  const handleEnviar = () => {
-    router.push('/reportar/exito');
+  // ENVÍO REAL A FIRESTORE
+  const handleEnviar = async () => {
+    if (!descripcion || !tiempoSeleccionado || !ubicacion) return;
+
+    try {
+      setCargandoEnvio(true);
+
+      // Guardamos el documento completo con la foto en Base64 en Firestore
+      await addDoc(collection(db, 'reportes'), {
+        usuarioId: auth.currentUser?.uid || 'anonimo',
+        emailUsuario: auth.currentUser?.email || 'Desconocido',
+        descripcion: descripcion,
+        antiguedad: tiempoSeleccionado,
+        ubicacion: ubicacion,
+        foto: fotoUri || null, // Aquí viaja el base64 comprimido
+        fecha: new Date().toISOString(),
+        estado: 'Pendiente',
+      });
+
+      router.push('/reportar/exito');
+    } catch (error) {
+      console.error('Error al guardar el reporte:', error);
+      Alert.alert('Error', 'No se pudo enviar el reporte a la base de datos.');
+    } finally {
+      setCargandoEnvio(false);
+    }
   };
 
-  // Función real para obtener la ubicación mediante el GPS del celular
   const obtenerUbicacionReal = async () => {
     try {
       setCargandoUbicacion(true);
-
-      // 1. Solicitar permisos de ubicación
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('Permiso denegado', 'Necesitamos acceso a tu ubicación para geolocalizar el reporte.');
+        Alert.alert('Permiso denegado', 'Necesitamos acceso a tu ubicación.');
         setCargandoUbicacion(false);
         return;
       }
 
-      // 2. Obtener posición actual con alta precisión
       const posicion = await Location.getCurrentPositionAsync({
         accuracy: Location.Accuracy.High,
       });
 
       const { latitude, longitude } = posicion.coords;
-
-      // 3. Traducir coordenadas a una dirección legible (Geocodificación inversa)
-      const resultados = await Location.reverseGeocodeAsync({
-        latitude,
-        longitude,
-      });
+      const resultados = await Location.reverseGeocodeAsync({ latitude, longitude });
 
       if (resultados.length > 0) {
         const direccion = resultados[0];
-        // Armamos un texto amigable con la calle, localidad o partido
         const calle = direccion.street || 'Ubicación actual';
         const localidad = direccion.city || direccion.subregion || 'Buenos Aires';
         setUbicacion(`${calle}, ${localidad}`);
       } else {
-        // Fallback si no encuentra dirección exacta
         setUbicacion(`Lat: ${latitude.toFixed(4)}, Lon: ${longitude.toFixed(4)}`);
       }
     } catch (error) {
@@ -89,7 +106,6 @@ export default function Paso3Screen() {
     >
       <Stack.Screen options={{ headerShown: false }} />
 
-      {/* HEADER */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={28} color={Colors.text} />
@@ -97,7 +113,6 @@ export default function Paso3Screen() {
         <Text style={styles.headerTitle}>Nuevo reporte</Text>
       </View>
 
-      {/* CONTENIDO CENTRAL */}
       <View style={styles.content}>
         <Text style={styles.sectionTitle}>Contanos más detalles</Text>
 
@@ -116,7 +131,6 @@ export default function Paso3Screen() {
           <Text style={styles.charCounter}>{descripcion.length}/400</Text>
         </View>
 
-        {/* MUESTRA LA FOTO */}
         {fotoUri && (
           <View style={styles.fotoContainer}>
             <Ionicons name="checkmark-circle" size={20} color={Colors.primary} />
@@ -125,10 +139,9 @@ export default function Paso3Screen() {
           </View>
         )}
 
-        {/* Botón de Ubicación Real (GPS) */}
         <Text style={styles.dropdownLabel}>Ubicación del problema</Text>
-        <TouchableOpacity 
-          style={styles.locationButton} 
+        <TouchableOpacity
+          style={styles.locationButton}
           onPress={obtenerUbicacionReal}
           disabled={cargandoUbicacion}
         >
@@ -138,11 +151,14 @@ export default function Paso3Screen() {
             color={ubicacion ? Colors.primary : Colors.text}
           />
           <Text style={[styles.locationText, !ubicacion && styles.dropdownPlaceholder]}>
-            {cargandoUbicacion ? 'Obteniendo ubicación GPS...' : (ubicacion ? ubicacion : 'Tocar para obtener mi ubicación')}
+            {cargandoUbicacion
+              ? 'Obteniendo ubicación GPS...'
+              : ubicacion
+                ? ubicacion
+                : 'Tocar para obtener mi ubicación'}
           </Text>
         </TouchableOpacity>
 
-        {/* Dropdown de Antigüedad */}
         <Text style={styles.dropdownLabel}>¿Desde cuándo existe este problema?</Text>
         <TouchableOpacity style={styles.dropdownButton} onPress={() => setModalVisible(true)}>
           <Text style={[styles.dropdownText, !tiempoSeleccionado && styles.dropdownPlaceholder]}>
@@ -152,21 +168,24 @@ export default function Paso3Screen() {
         </TouchableOpacity>
       </View>
 
-      {/* FOOTER */}
       <View style={styles.footer}>
         <TouchableOpacity
           style={[
             styles.submitButton,
-            (!descripcion || !tiempoSeleccionado || !ubicacion) && styles.submitButtonDisabled,
+            (!descripcion || !tiempoSeleccionado || !ubicacion || cargandoEnvio) &&
+              styles.submitButtonDisabled,
           ]}
           onPress={handleEnviar}
-          disabled={!descripcion || !tiempoSeleccionado || !ubicacion}
+          disabled={!descripcion || !tiempoSeleccionado || !ubicacion || cargandoEnvio}
         >
-          <Text style={styles.submitButtonText}>Enviar reporte</Text>
+          {cargandoEnvio ? (
+            <ActivityIndicator color={Colors.surface} />
+          ) : (
+            <Text style={styles.submitButtonText}>Enviar reporte</Text>
+          )}
         </TouchableOpacity>
       </View>
 
-      {/* MODAL SELECTOR */}
       <Modal visible={modalVisible} transparent={true} animationType="fade">
         <TouchableOpacity
           style={styles.modalOverlay}
@@ -198,10 +217,7 @@ export default function Paso3Screen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
+  container: { flex: 1, backgroundColor: Colors.background },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -209,23 +225,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing.lg,
   },
-  backButton: {
-    marginRight: Spacing.md,
-  },
-  headerTitle: {
-    fontSize: FontSize.xl,
-    color: Colors.text,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: Spacing.xl,
-    paddingTop: Spacing.lg,
-  },
-  sectionTitle: {
-    fontSize: FontSize.lg,
-    color: Colors.text,
-    marginBottom: Spacing.lg,
-  },
+  backButton: { marginRight: Spacing.md },
+  headerTitle: { fontSize: FontSize.xl, color: Colors.text },
+  content: { flex: 1, paddingHorizontal: Spacing.xl, paddingTop: Spacing.lg },
+  sectionTitle: { fontSize: FontSize.lg, color: Colors.text, marginBottom: Spacing.lg },
   textAreaContainer: {
     backgroundColor: 'rgba(0, 0, 0, 0.1)',
     borderRadius: Radius.sm,
@@ -233,11 +236,7 @@ const styles = StyleSheet.create({
     height: 120,
     marginBottom: Spacing.md,
   },
-  textArea: {
-    flex: 1,
-    fontSize: FontSize.md,
-    color: Colors.text,
-  },
+  textArea: { flex: 1, fontSize: FontSize.md, color: Colors.text },
   charCounter: {
     position: 'absolute',
     bottom: Spacing.sm,
@@ -262,17 +261,8 @@ const styles = StyleSheet.create({
     marginLeft: Spacing.sm,
     fontWeight: '500',
   },
-  miniaturaFoto: {
-    width: 40,
-    height: 40,
-    borderRadius: Radius.xs, 
-    marginLeft: Spacing.md,
-  },
-  dropdownLabel: {
-    fontSize: FontSize.md,
-    color: Colors.text,
-    marginBottom: Spacing.sm,
-  },
+  miniaturaFoto: { width: 40, height: 40, borderRadius: Radius.sm, marginLeft: Spacing.md },
+  dropdownLabel: { fontSize: FontSize.md, color: Colors.text, marginBottom: Spacing.sm },
   dropdownButton: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -283,13 +273,8 @@ const styles = StyleSheet.create({
     borderRadius: Radius.sm,
     marginBottom: Spacing.xl,
   },
-  dropdownText: {
-    fontSize: FontSize.md,
-    color: Colors.text,
-  },
-  dropdownPlaceholder: {
-    color: 'rgba(0,0,0,0.6)',
-  },
+  dropdownText: { fontSize: FontSize.md, color: Colors.text },
+  dropdownPlaceholder: { color: 'rgba(0,0,0,0.6)' },
   locationButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -299,11 +284,7 @@ const styles = StyleSheet.create({
     borderRadius: Radius.sm,
     marginBottom: Spacing.xl,
   },
-  locationText: {
-    fontSize: FontSize.md,
-    color: Colors.text,
-    marginLeft: Spacing.sm,
-  },
+  locationText: { fontSize: FontSize.md, color: Colors.text, marginLeft: Spacing.sm },
   footer: {
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.md,
@@ -316,15 +297,11 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.xl,
     borderRadius: 30,
+    minWidth: 140,
+    alignItems: 'center',
   },
-  submitButtonDisabled: {
-    opacity: 0.5,
-  },
-  submitButtonText: {
-    color: Colors.surface,
-    fontSize: FontSize.md,
-    fontWeight: 'bold',
-  },
+  submitButtonDisabled: { opacity: 0.5 },
+  submitButtonText: { color: Colors.surface, fontSize: FontSize.md, fontWeight: 'bold' },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
@@ -349,8 +326,5 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(0,0,0,0.1)',
   },
-  modalOptionText: {
-    fontSize: FontSize.md,
-    color: Colors.text,
-  },
+  modalOptionText: { fontSize: FontSize.md, color: Colors.text },
 });
