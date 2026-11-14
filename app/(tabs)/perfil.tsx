@@ -1,20 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, TouchableWithoutFeedback } from 'react-native';
-import { Ionicons, FontAwesome5, MaterialIcons } from '@expo/vector-icons';
-// Importamos useLocalSearchParams para leer la orden del menú lateral
+import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router'; 
 
 export default function PerfilScreen() {
   const router = useRouter();
-  const { openHelp } = useLocalSearchParams(); // Capturamos el parámetro
+  const { openHelp } = useLocalSearchParams(); 
 
+  // Estados independientes para cada modal
   const [modalAyudaVisible, setModalAyudaVisible] = useState(false);
+  const [modalPasswordVisible, setModalPasswordVisible] = useState(false);
+  const [modalDatosVisible, setModalDatosVisible] = useState(false); // 👈 Nuevo estado para "Mis datos"
 
-  // Efecto que revisa si entramos a la pantalla pidiendo abrir la ayuda
   useEffect(() => {
     if (openHelp === 'true') {
       setModalAyudaVisible(true);
-      // Limpiamos el aviso para que no se abra solo si entras normalmente después
       router.setParams({ openHelp: '' });
     }
   }, [openHelp]);
@@ -23,63 +23,136 @@ export default function PerfilScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={28} color="#000" />
+          <FontAwesome5 name="arrow-left" size={24} color="#000" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Perfil</Text>
-        <View style={{ width: 28 }} />
+        <View style={{ width: 24 }} />
       </View>
 
       <View style={styles.profileSection}>
         <View style={styles.avatarContainer}>
-          <FontAwesome5 name="user-circle" size={110} color="#000" />
+          <FontAwesome5 name="user-circle" size={120} color="#000" solid />
           <View style={styles.cameraBadge}>
-            <Ionicons name="camera" size={14} color="#FFF" />
+            <FontAwesome5 name="camera" size={14} color="#3B82F6" />
           </View>
         </View>
-        <Text style={styles.name}>Usuario de ejemplo</Text>
+        <Text style={styles.name}>Usuario Ejemplo</Text>
         <Text style={styles.email}>usuario@gmail.com</Text>
       </View>
 
       <View style={styles.divider} />
 
       <View style={styles.menuContainer}>
-        <TouchableOpacity style={styles.menuItem}>
+        
+        {/* BOTÓN MIS DATOS - ABRE TARJETA DE DATOS PRIVADOS */}
+        <TouchableOpacity style={styles.menuItem} onPress={() => setModalDatosVisible(true)}>
           <View style={styles.menuItemLeft}>
-            <Ionicons name="person" size={22} color="#000" />
+            <FontAwesome5 name="user-alt" size={20} color="#000" style={styles.iconWidth} />
             <Text style={styles.menuItemText}>Mis datos</Text>
           </View>
-          <MaterialIcons name="keyboard-arrow-right" size={24} color="#000" />
+          <Ionicons name="chevron-forward" size={22} color="#000" />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.menuItem}>
+        {/* BOTÓN CAMBIAR CONTRASEÑA - ABRE TARJETA DE CONTRASEÑA */}
+        <TouchableOpacity style={styles.menuItem} onPress={() => setModalPasswordVisible(true)}>
           <View style={styles.menuItemLeft}>
-            <MaterialIcons name="lock" size={22} color="#000" />
-            <Text style={styles.menuItemText}>Cambiar nombre</Text>
+            <FontAwesome5 name="lock" size={20} color="#000" style={styles.iconWidth} />
+            <Text style={styles.menuItemText}>Cambiar contraseña</Text>
           </View>
-          <MaterialIcons name="keyboard-arrow-right" size={24} color="#000" />
+          <Ionicons name="chevron-forward" size={22} color="#000" />
         </TouchableOpacity>
 
         <View style={styles.divider} />
 
-        {/* Este botón sigue funcionando también si el usuario entra manualmente a Perfil */}
+        {/* BOTÓN AYUDA Y SOPORTE - ABRE TARJETA ORIGINAL */}
         <TouchableOpacity style={styles.menuItem} onPress={() => setModalAyudaVisible(true)}>
           <View style={styles.menuItemLeft}>
-            <MaterialIcons name="help" size={22} color="#000" />
+            <FontAwesome5 name="question-circle" size={22} color="#000" solid style={styles.iconWidth} />
             <Text style={styles.menuItemText}>Ayuda y soporte</Text>
           </View>
-          <MaterialIcons name="keyboard-arrow-right" size={24} color="#000" />
+          <Ionicons name="chevron-forward" size={22} color="#000" />
         </TouchableOpacity>
+
+        <View style={styles.divider} />
 
         <TouchableOpacity style={styles.menuItem} onPress={() => router.replace('/(auth)/login')}>
           <View style={styles.menuItemLeft}>
-            <MaterialIcons name="logout" size={22} color="#000" />
+            <FontAwesome5 name="sign-out-alt" size={22} color="#000" style={styles.iconWidth} />
             <Text style={styles.menuItemText}>Cerrar sesión</Text>
           </View>
-          <MaterialIcons name="keyboard-arrow-right" size={24} color="#000" />
+          <Ionicons name="chevron-forward" size={22} color="#000" />
         </TouchableOpacity>
       </View>
 
-      {/* MODAL: TARJETA AZUL DE SOPORTE */}
+      {/* MODAL 1: MIS DATOS PRIVADOS */}
+      <Modal
+        visible={modalDatosVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setModalDatosVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <TouchableWithoutFeedback onPress={() => setModalDatosVisible(false)}>
+            <View style={styles.modalBackground} />
+          </TouchableWithoutFeedback>
+          
+          <View style={styles.tarjetaAzul}>
+            <View style={styles.logoContainer}>
+              <Text style={styles.logoMi}>mi </Text>
+              <Text style={styles.logoBarrio}>barrio</Text>
+            </View>
+            
+            <Text style={styles.tituloAyudaCentral}>¿Quieres ver tus datos mas privados?</Text>
+            <Text style={styles.subtituloAyuda}>Contactanos!!</Text>
+            
+            <Text style={styles.textoAyuda}>
+              El equipo de Mi Barrio está aquí para ayudarte. Si tienes inconvenientes para subir un reporte, la ubicación falla, o tienes dudas sobre los estados de tus reclamos, no dudes en contactarnos.
+            </Text>
+            
+            <Text style={styles.contactoAyuda}>
+              Correo: soporte@mibarrio.app{'\n'}
+              WhatsApp: +54 9 11 1234-5678{'\n'}
+              Horario: Lunes a Domingos de 8 a 18 hs.
+            </Text>
+          </View>
+        </View>
+      </Modal>
+
+      {/* MODAL 2: CAMBIO DE CONTRASEÑA */}
+      <Modal
+        visible={modalPasswordVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setModalPasswordVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <TouchableWithoutFeedback onPress={() => setModalPasswordVisible(false)}>
+            <View style={styles.modalBackground} />
+          </TouchableWithoutFeedback>
+          
+          <View style={styles.tarjetaAzul}>
+            <View style={styles.logoContainer}>
+              <Text style={styles.logoMi}>mi </Text>
+              <Text style={styles.logoBarrio}>barrio</Text>
+            </View>
+            
+            <Text style={styles.tituloAyudaCentral}>¿Quieres cambiar tu contraseña?</Text>
+            <Text style={styles.subtituloAyuda}>Contactanos!!</Text>
+            
+            <Text style={styles.textoAyuda}>
+              El equipo de Mi Barrio está aquí para ayudarte. Si tienes inconvenientes para subir un reporte, la ubicación falla, o tienes dudas sobre los estados de tus reclamos, no dudes en contactarnos.
+            </Text>
+            
+            <Text style={styles.contactoAyuda}>
+              Correo: soporte@mibarrio.app{'\n'}
+              WhatsApp: +54 9 11 1234-5678{'\n'}
+              Horario: Lunes a Domingos de 8 a 18 hs.
+            </Text>
+          </View>
+        </View>
+      </Modal>
+
+      {/* MODAL 3: AYUDA Y SOPORTE ORIGINAL */}
       <Modal
         visible={modalAyudaVisible}
         transparent={true}
@@ -93,11 +166,11 @@ export default function PerfilScreen() {
           
           <View style={styles.tarjetaAzul}>
             <View style={styles.logoContainer}>
-              <Text style={styles.logoMi}>mi</Text>
+              <Text style={styles.logoMi}>mi </Text>
               <Text style={styles.logoBarrio}>barrio</Text>
             </View>
             
-            <Text style={styles.tituloAyuda}>¿Necesitas asistencia?</Text>
+            <Text style={styles.tituloAyudaCentral}>¿Necesitas asistencia?</Text>
             <Text style={styles.subtituloAyuda}>Contactanos!!</Text>
             
             <Text style={styles.textoAyuda}>
@@ -126,37 +199,37 @@ const styles = StyleSheet.create({
     paddingTop: 50,
     paddingBottom: 20,
   },
-  headerTitle: { fontSize: 22, color: '#000', fontWeight: '300' },
+  headerTitle: { fontSize: 24, color: '#000', fontWeight: '300' },
   profileSection: { alignItems: 'center', marginBottom: 20 },
-  avatarContainer: { position: 'relative', marginBottom: 10 },
+  avatarContainer: { position: 'relative', marginBottom: 15 },
   cameraBadge: {
     position: 'absolute',
-    bottom: 0,
+    bottom: 5,
     right: 5,
-    backgroundColor: '#3B82F6',
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    backgroundColor: '#E5E7EB',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
     borderColor: '#FFF',
   },
-  name: { fontSize: 22, color: '#000', marginBottom: 4, fontWeight: '300' },
-  email: { fontSize: 12, color: '#555' },
-  divider: { height: 1, backgroundColor: '#666', marginHorizontal: 20, marginVertical: 5 },
-  menuContainer: { paddingVertical: 5 },
+  name: { fontSize: 24, color: '#000', marginBottom: 4, fontWeight: '300' },
+  email: { fontSize: 14, color: '#555' },
+  divider: { height: 1, backgroundColor: '#222', marginHorizontal: 20, marginVertical: 0 },
+  menuContainer: { paddingVertical: 10 },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 15,
+    paddingVertical: 18,
     paddingHorizontal: 20,
   },
   menuItemLeft: { flexDirection: 'row', alignItems: 'center' },
-  menuItemText: { fontSize: 15, color: '#000', marginLeft: 15, fontWeight: '300' },
+  iconWidth: { width: 28, textAlign: 'center' },
+  menuItemText: { fontSize: 16, color: '#000', marginLeft: 15, fontWeight: '300' },
 
-  /* ESTILOS DEL MODAL Y TARJETA AZUL */
   modalOverlay: {
     flex: 1,
     justifyContent: 'center', 
@@ -168,11 +241,11 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(255, 255, 255, 0.4)',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
   },
   tarjetaAzul: {
     width: '85%', 
-    backgroundColor: '#2E64FE', 
+    backgroundColor: '#3B82F6', 
     borderRadius: 20,
     padding: 30,
     alignItems: 'center',
@@ -188,29 +261,29 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   logoMi: {
-    color: '#FF0000',
+    color: '#EF4444',
     fontSize: 36,
     fontWeight: '900',
     letterSpacing: -1,
   },
   logoBarrio: {
-    color: '#004A99', 
+    color: '#1E3A8A', 
     fontSize: 36,
     fontWeight: '900',
     letterSpacing: -1,
   },
-  tituloAyuda: {
+  tituloAyudaCentral: {
     color: '#FFFFFF',
     fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 20,
+    marginBottom: 10,
     textAlign: 'center',
   },
   subtituloAyuda: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginBottom: 20,
     textAlign: 'center',
   },
   textoAyuda: {
