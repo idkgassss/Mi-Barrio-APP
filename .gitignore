@@ -1,5 +1,13 @@
 # Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
+# ==============================================================================
+# SEGURIDAD Y CREDENCIALES (¡NUNCA SUBIR A GITHUB!)
+# ==============================================================================
+.env
+.env.*
+google-services.json
+GoogleService-Info.plist
+
 # dependencies
 node_modules/
 
@@ -17,6 +25,7 @@ expo-env.d.ts
 *.p12
 *.key
 *.mobileprovision
+*.pem
 
 # Metro
 .metro-health-check*
@@ -28,11 +37,6 @@ yarn-error.*
 
 # macOS
 .DS_Store
-*.pem
-
-# local env files
-.env*.local
-.env
 
 # typescript
 *.tsbuildinfo
