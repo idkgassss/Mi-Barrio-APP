@@ -11,6 +11,8 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.migrupo.mibarrio",
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#E6F4FE"
@@ -20,8 +22,7 @@
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.RECORD_AUDIO"
-      ],
-      "package": "com.anonymous.MiBarrioAPP"
+      ]
     },
     "web": {
       "bundler": "metro"
@@ -44,7 +45,15 @@
       "expo-status-bar",
       "expo-secure-store",
       "@react-native-google-signin/google-signin",
-      "expo-dev-client"
+      "expo-dev-client",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "enableProguardInReleaseBuilds": false
+          }
+        }
+      ]
     ],
     "extra": {
       "router": {
@@ -53,7 +62,7 @@
         }
       },
       "eas": {
-        "projectId": "9c730584-2290-4948-a1d2-c5947c0ab24a"
+        "projectId": "f09797bd-f547-44ca-8e38-f91db28ff2a7"
       }
     }
   }
