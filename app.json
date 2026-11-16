@@ -8,7 +8,10 @@
     "userInterfaceStyle": "light",
     "scheme": "mibarrio",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "config": {
+        "googleMapsApiKey": "AIzaSyCoMXn15b_aSB2SP48vBk0hSKTBVnYnM8k"
+      }
     },
     "android": {
       "package": "com.migrupo.mibarrio",
@@ -22,7 +25,12 @@
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.RECORD_AUDIO"
-      ]
+      ],
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyCoMXn15b_aSB2SP48vBk0hSKTBVnYnM8k"
+        }
+      }
     },
     "web": {
       "bundler": "metro"
@@ -50,7 +58,11 @@
         "expo-build-properties",
         {
           "android": {
-            "enableProguardInReleaseBuilds": false
+            "enableProguardInReleaseBuilds": false,
+            "extraAndroidManifest": {
+              "com.google.android.geo.API_KEY": "AIzaSyCoMXn15b_aSB2SP48vBk0hSKTBVnYnM8k"
+            },
+            "enableMinifyInReleaseBuilds": false
           }
         }
       ]
@@ -62,7 +74,7 @@
         }
       },
       "eas": {
-        "projectId": "f09797bd-f547-44ca-8e38-f91db28ff2a7"
+        "projectId": "450c4a5d-0924-4dd8-add1-3572a2f0ce83"
       }
     }
   }

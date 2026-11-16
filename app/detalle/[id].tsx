@@ -66,7 +66,11 @@ export default function DetalleReporteScreen() {
 
   const estadoInfo = getEstadoInfo(reporte.estado);
   const imagenUrl = reporte.foto || reporte.imagen;
-  const direccionTexto = reporte.ubicacion || reporte.direccion;
+  
+  // CORRECCIÓN CLAVE: Leemos la ubicación en texto, evitamos el objeto de coordenadas
+  const direccionTexto = reporte.ubicacionTexto 
+    || (typeof reporte.ubicacion === 'string' ? reporte.ubicacion : reporte.direccion) 
+    || 'Ubicación marcada en el mapa';
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
