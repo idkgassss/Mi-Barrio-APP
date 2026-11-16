@@ -13,7 +13,10 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from './firebase';
 
 GoogleSignin.configure({
-  webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+  webClientId:
+    process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ||
+    '327371000510-13q11f5t80cb3tgdk1qdui1ko16d50t2.apps.googleusercontent.com',
+  forceCodeForRefreshToken: true,
 });
 
 export const authService = {
@@ -48,13 +51,13 @@ export const authService = {
     }
   },
 
-  // 2. REGISTRO CON CORREO Y CONTRASEÑA
+  // 2. REGISTRO CON CORREO Y CONTRASEÑA (Sin verificación)
   registerWithEmail: async (email: string, password: string, nombre: string) => {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const firebaseUser = userCredential.user;
 
-      // Le creamos su perfil en la base de datos
+      // Le creamos su perfil en la base de datos (ya NO mandamos correo de verificación)
       const userRef = doc(db, 'usuarios', firebaseUser.uid);
       await setDoc(userRef, {
         id: firebaseUser.uid,
@@ -63,6 +66,7 @@ export const authService = {
         avatar: '',
         fechaRegistro: new Date().toISOString(),
       });
+
       return firebaseUser;
     } catch (error: any) {
       throw error;
@@ -73,7 +77,7 @@ export const authService = {
   loginWithEmail: async (email: string, password: string) => {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      return userCredential.user;
+      return userCredential.user; // Entra directo sin preguntar si está verificado
     } catch (error: any) {
       throw error;
     }

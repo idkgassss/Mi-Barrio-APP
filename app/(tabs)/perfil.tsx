@@ -1,25 +1,39 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal, TouchableWithoutFeedback, Image, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Modal,
+  TouchableWithoutFeedback,
+  Image,
+  Alert,
+} from 'react-native';
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import * as ImagePicker from 'expo-image-picker'; 
-import { updateProfile } from 'firebase/auth'; 
+import * as ImagePicker from 'expo-image-picker';
+import { updateProfile } from 'firebase/auth';
 import { authService } from '../../services/authService';
 import { auth } from '../../services/firebase';
+import { useUsuarioStore } from '../../store/useUsuarioStore'; // <-- 1. Importamos el store
 
 export default function PerfilScreen() {
   const router = useRouter();
-  const { openHelp } = useLocalSearchParams(); 
+  const { openHelp } = useLocalSearchParams();
 
   const [modalAyudaVisible, setModalAyudaVisible] = useState(false);
   const [modalPasswordVisible, setModalPasswordVisible] = useState(false);
   const [modalDatosVisible, setModalDatosVisible] = useState(false);
 
+  // 2. Traemos el usuario desde el estado global
+  const usuario = useUsuarioStore((state) => state.usuario);
   const usuarioActual = auth.currentUser;
-  const nombreUsuario = usuarioActual?.displayName || 'Vecino';
-  const emailUsuario = usuarioActual?.email || 'Sin correo registrado';
-  
-  const [fotoUsuario, setFotoUsuario] = useState(usuarioActual?.photoURL);
+
+  // 3. Reemplazamos los datos estáticos por los de Zustand
+  const nombreUsuario = usuario?.nombre || usuarioActual?.displayName || 'Vecino';
+  const emailUsuario = usuario?.email || usuarioActual?.email || 'Sin correo registrado';
+
+  const [fotoUsuario, setFotoUsuario] = useState(usuario?.avatar || usuarioActual?.photoURL);
 
   useEffect(() => {
     if (openHelp === 'true') {
@@ -37,25 +51,28 @@ export default function PerfilScreen() {
 
     const resultado = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true, 
+      allowsEditing: true,
       aspect: [1, 1],
-      quality: 0.1, 
+      quality: 0.1,
       base64: true,
     });
 
     if (!resultado.canceled && resultado.assets[0].base64) {
       const imagenBase64 = `data:image/jpeg;base64,${resultado.assets[0].base64}`;
-      setFotoUsuario(imagenBase64); 
+      setFotoUsuario(imagenBase64);
 
       try {
         if (usuarioActual) {
           await updateProfile(usuarioActual, {
-            photoURL: imagenBase64
+            photoURL: imagenBase64,
           });
         }
       } catch (error) {
         console.error('Error al actualizar perfil en Firebase:', error);
-        Alert.alert('Aviso', 'La foto se cambió pero podría no guardarse permanentemente debido a su tamaño.');
+        Alert.alert(
+          'Aviso',
+          'La foto se cambió pero podría no guardarse permanentemente debido a su tamaño.'
+        );
       }
     }
   };
@@ -85,12 +102,12 @@ export default function PerfilScreen() {
           ) : (
             <FontAwesome5 name="user-circle" size={120} color="#000" solid />
           )}
-          
+
           <View style={styles.cameraBadge}>
             <FontAwesome5 name="camera" size={14} color="#3B82F6" />
           </View>
         </TouchableOpacity>
-        
+
         <Text style={styles.name}>{nombreUsuario}</Text>
         <Text style={styles.email}>{emailUsuario}</Text>
       </View>
@@ -118,7 +135,13 @@ export default function PerfilScreen() {
 
         <TouchableOpacity style={styles.menuItem} onPress={() => setModalAyudaVisible(true)}>
           <View style={styles.menuItemLeft}>
-            <FontAwesome5 name="question-circle" size={22} color="#000" solid style={styles.iconWidth} />
+            <FontAwesome5
+              name="question-circle"
+              size={22}
+              color="#000"
+              solid
+              style={styles.iconWidth}
+            />
             <Text style={styles.menuItemText}>Ayuda y soporte</Text>
           </View>
           <Ionicons name="chevron-forward" size={22} color="#000" />
@@ -136,7 +159,12 @@ export default function PerfilScreen() {
       </View>
 
       {/* MODAL 1: MIS DATOS PRIVADOS */}
-      <Modal visible={modalDatosVisible} transparent={true} animationType="fade" onRequestClose={() => setModalDatosVisible(false)}>
+      <Modal
+        visible={modalDatosVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setModalDatosVisible(false)}
+      >
         <View style={styles.modalOverlay}>
           <TouchableWithoutFeedback onPress={() => setModalDatosVisible(false)}>
             <View style={styles.modalBackground} />
@@ -149,17 +177,25 @@ export default function PerfilScreen() {
             <Text style={styles.tituloAyudaCentral}>¿Quieres ver tus datos mas privados?</Text>
             <Text style={styles.subtituloAyuda}>Contactanos!!</Text>
             <Text style={styles.textoAyuda}>
-              El equipo de Mi Barrio está aquí para ayudarte. Si tienes inconvenientes para subir un reporte, la ubicación falla, o tienes dudas sobre los estados de tus reclamos, no dudes en contactarnos.
+              El equipo de Mi Barrio está aquí para ayudarte. Si tienes inconvenientes para subir un
+              reporte, la ubicación falla, o tienes dudas sobre los estados de tus reclamos, no
+              dudes en contactarnos.
             </Text>
             <Text style={styles.contactoAyuda}>
-              Correo: soporte@mibarrio.app{'\n'}WhatsApp: +54 9 11 1234-5678{'\n'}Horario: Lunes a Domingos de 8 a 18 hs.
+              Correo: soporte@mibarrio.app{'\n'}WhatsApp: +54 9 11 1234-5678{'\n'}Horario: Lunes a
+              Domingos de 8 a 18 hs.
             </Text>
           </View>
         </View>
       </Modal>
 
       {/* MODAL 2: CAMBIO DE CONTRASEÑA */}
-      <Modal visible={modalPasswordVisible} transparent={true} animationType="fade" onRequestClose={() => setModalPasswordVisible(false)}>
+      <Modal
+        visible={modalPasswordVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setModalPasswordVisible(false)}
+      >
         <View style={styles.modalOverlay}>
           <TouchableWithoutFeedback onPress={() => setModalPasswordVisible(false)}>
             <View style={styles.modalBackground} />
@@ -172,17 +208,25 @@ export default function PerfilScreen() {
             <Text style={styles.tituloAyudaCentral}>¿Quieres cambiar tu contraseña?</Text>
             <Text style={styles.subtituloAyuda}>Contactanos!!</Text>
             <Text style={styles.textoAyuda}>
-              El equipo de Mi Barrio está aquí para ayudarte. Si tienes inconvenientes para subir un reporte, la ubicación falla, o tienes dudas sobre los estados de tus reclamos, no dudes en contactarnos.
+              El equipo de Mi Barrio está aquí para ayudarte. Si tienes inconvenientes para subir un
+              reporte, la ubicación falla, o tienes dudas sobre los estados de tus reclamos, no
+              dudes en contactarnos.
             </Text>
             <Text style={styles.contactoAyuda}>
-              Correo: soporte@mibarrio.app{'\n'}WhatsApp: +54 9 11 1234-5678{'\n'}Horario: Lunes a Domingos de 8 a 18 hs.
+              Correo: soporte@mibarrio.app{'\n'}WhatsApp: +54 9 11 1234-5678{'\n'}Horario: Lunes a
+              Domingos de 8 a 18 hs.
             </Text>
           </View>
         </View>
       </Modal>
 
       {/* MODAL 3: AYUDA Y SOPORTE ORIGINAL */}
-      <Modal visible={modalAyudaVisible} transparent={true} animationType="fade" onRequestClose={() => setModalAyudaVisible(false)}>
+      <Modal
+        visible={modalAyudaVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setModalAyudaVisible(false)}
+      >
         <View style={styles.modalOverlay}>
           <TouchableWithoutFeedback onPress={() => setModalAyudaVisible(false)}>
             <View style={styles.modalBackground} />
@@ -195,10 +239,13 @@ export default function PerfilScreen() {
             <Text style={styles.tituloAyudaCentral}>¿Necesitas asistencia?</Text>
             <Text style={styles.subtituloAyuda}>Contactanos!!</Text>
             <Text style={styles.textoAyuda}>
-              El equipo de Mi Barrio está aquí para ayudarte. Si tienes inconvenientes para subir un reporte, la ubicación falla, o tienes dudas sobre los estados de tus reclamos, no dudes en contactarnos.
+              El equipo de Mi Barrio está aquí para ayudarte. Si tienes inconvenientes para subir un
+              reporte, la ubicación falla, o tienes dudas sobre los estados de tus reclamos, no
+              dudes en contactarnos.
             </Text>
             <Text style={styles.contactoAyuda}>
-              Correo: soporte@mibarrio.app{'\n'}WhatsApp: +54 9 11 1234-5678{'\n'}Horario: Lunes a Domingos de 8 a 18 hs.
+              Correo: soporte@mibarrio.app{'\n'}WhatsApp: +54 9 11 1234-5678{'\n'}Horario: Lunes a
+              Domingos de 8 a 18 hs.
             </Text>
           </View>
         </View>
@@ -209,28 +256,96 @@ export default function PerfilScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFF' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 50, paddingBottom: 20 },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 50,
+    paddingBottom: 20,
+  },
   headerTitle: { fontSize: 24, color: '#000', fontWeight: '300' },
   profileSection: { alignItems: 'center', marginBottom: 20 },
   avatarContainer: { position: 'relative', marginBottom: 15 },
   fotoPerfilReal: { width: 120, height: 120, borderRadius: 60 },
-  cameraBadge: { position: 'absolute', bottom: 5, right: 5, backgroundColor: '#E5E7EB', width: 32, height: 32, borderRadius: 16, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#FFF' },
+  cameraBadge: {
+    position: 'absolute',
+    bottom: 5,
+    right: 5,
+    backgroundColor: '#E5E7EB',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#FFF',
+  },
   name: { fontSize: 24, color: '#000', marginBottom: 4, fontWeight: '300' },
   email: { fontSize: 14, color: '#555' },
   divider: { height: 1, backgroundColor: '#222', marginHorizontal: 20, marginVertical: 0 },
   menuContainer: { paddingVertical: 10 },
-  menuItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 18, paddingHorizontal: 20 },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 18,
+    paddingHorizontal: 20,
+  },
   menuItemLeft: { flexDirection: 'row', alignItems: 'center' },
   iconWidth: { width: 28, textAlign: 'center' },
   menuItemText: { fontSize: 16, color: '#000', marginLeft: 15, fontWeight: '300' },
   modalOverlay: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  modalBackground: { position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(0, 0, 0, 0.4)' },
-  tarjetaAzul: { width: '85%', backgroundColor: '#3B82F6', borderRadius: 20, padding: 30, alignItems: 'center', elevation: 5, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4 },
+  modalBackground: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+  },
+  tarjetaAzul: {
+    width: '85%',
+    backgroundColor: '#3B82F6',
+    borderRadius: 20,
+    padding: 30,
+    alignItems: 'center',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+  },
   logoContainer: { flexDirection: 'row', alignItems: 'baseline', marginBottom: 30 },
   logoMi: { color: '#EF4444', fontSize: 36, fontWeight: '900', letterSpacing: -1 },
   logoBarrio: { color: '#1E3A8A', fontSize: 36, fontWeight: '900', letterSpacing: -1 },
-  tituloAyudaCentral: { color: '#FFFFFF', fontSize: 20, fontWeight: 'bold', marginBottom: 10, textAlign: 'center' },
-  subtituloAyuda: { color: '#FFFFFF', fontSize: 16, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' },
-  textoAyuda: { color: '#FFFFFF', fontSize: 14, fontWeight: '600', textAlign: 'center', marginBottom: 20, lineHeight: 22 },
-  contactoAyuda: { color: '#FFFFFF', fontSize: 14, fontWeight: 'bold', textAlign: 'center', lineHeight: 22 },
+  tituloAyudaCentral: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  subtituloAyuda: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  textoAyuda: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 20,
+    lineHeight: 22,
+  },
+  contactoAyuda: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    lineHeight: 22,
+  },
 });

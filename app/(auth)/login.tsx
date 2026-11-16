@@ -13,9 +13,10 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, Radius } from '@/constants/theme';
 import { authService } from '../../services/authService';
+import { useUsuarioStore } from '../../store/useUsuarioStore';
 
 export default function LoginScreen() {
-  const [isLogin, setIsLogin] = useState(true); 
+  const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -23,9 +24,10 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [nombre, setNombre] = useState(''); 
+  const [nombre, setNombre] = useState('');
 
-  // NUEVA FUNCIÓN: Limpia todos los campos al cambiar de Log In a Sign Up
+  const loginAction = useUsuarioStore((state) => state.login);
+
   const cambiarModo = (modoLogin: boolean) => {
     setIsLogin(modoLogin);
     setEmail('');
@@ -37,7 +39,9 @@ export default function LoginScreen() {
   };
 
   const handleEmailSubmit = async () => {
-    if (!email || !password) {
+    const emailLimpio = email.trim();
+
+    if (!emailLimpio || !password) {
       Alert.alert('Error', 'Por favor completá todos los campos.');
       return;
     }
@@ -45,8 +49,17 @@ export default function LoginScreen() {
     setIsLoading(true);
     try {
       if (isLogin) {
-        await authService.loginWithEmail(email, password);
+        // INICIO DE SESIÓN
+        const firebaseUser = await authService.loginWithEmail(emailLimpio, password);
+
+        await loginAction({
+          id: firebaseUser.uid,
+          email: firebaseUser.email || '',
+          nombre: firebaseUser.displayName || 'Vecino',
+          avatar: firebaseUser.photoURL || '',
+        });
       } else {
+        // REGISTRO
         if (!nombre) {
           Alert.alert('Error', 'Por favor ingresá tu nombre.');
           setIsLoading(false);
@@ -57,11 +70,39 @@ export default function LoginScreen() {
           setIsLoading(false);
           return;
         }
-        await authService.registerWithEmail(email, password, nombre);
+
+        const firebaseUser = await authService.registerWithEmail(emailLimpio, password, nombre);
+
+        // Ingresa automáticamente a la app sin pedir verificación
+        await loginAction({
+          id: firebaseUser.uid,
+          email: firebaseUser.email || '',
+          nombre: nombre,
+          avatar: firebaseUser.photoURL || '',
+        });
       }
     } catch (error: any) {
       console.error(error);
-      Alert.alert('Error', 'Ocurrió un problema. Verificá tus datos.');
+
+      const errCode = error.code || '';
+      const errMsg = error.message || '';
+
+      if (errCode === 'auth/invalid-credential' || errMsg.includes('invalid-credential')) {
+        Alert.alert(
+          'Datos incorrectos',
+          'El correo o la contraseña no coinciden. Asegurate de no haber dejado espacios en blanco al final.'
+        );
+      } else if (
+        errCode === 'auth/email-already-in-use' ||
+        errMsg.includes('email-already-in-use')
+      ) {
+        Alert.alert(
+          'El correo ya está registrado',
+          'Ya existe una cuenta con este correo electrónico. Por favor, iniciá sesión.'
+        );
+      } else {
+        Alert.alert('Error', 'Ocurrió un problema al procesar la solicitud. Intentá de nuevo.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -70,10 +111,17 @@ export default function LoginScreen() {
   const handleGoogleLogin = async () => {
     setIsLoading(true);
     try {
-      await authService.signInWithGoogle();
+      const firebaseUser = await authService.signInWithGoogle();
+
+      await loginAction({
+        id: firebaseUser.uid,
+        email: firebaseUser.email || '',
+        nombre: firebaseUser.displayName || 'Vecino',
+        avatar: firebaseUser.photoURL || '',
+      });
     } catch (error: any) {
       console.error(error);
-      Alert.alert('Error', 'No se pudo iniciar sesión con Google.');
+      Alert.alert('Error Google', error.message || 'No se pudo iniciar sesión con Google.');
     } finally {
       setIsLoading(false);
     }
@@ -86,7 +134,6 @@ export default function LoginScreen() {
       resizeMode="cover"
     >
       <View style={styles.overlay}>
-        
         <View style={styles.logoContainer}>
           <Image
             source={require('../../assets/logo.png')}
@@ -97,20 +144,15 @@ export default function LoginScreen() {
 
         <View style={styles.cardWrapper}>
           <View style={styles.card}>
-            
             <View style={styles.toggleContainer}>
               <TouchableOpacity
                 style={[styles.toggleButton, isLogin && styles.toggleButtonActive]}
-                // CORRECCIÓN: Usamos la nueva función para limpiar campos
-                onPress={() => cambiarModo(true)} 
+                onPress={() => cambiarModo(true)}
               >
-                <Text style={[styles.toggleText, isLogin && styles.toggleTextActive]}>
-                  Log In
-                </Text>
+                <Text style={[styles.toggleText, isLogin && styles.toggleTextActive]}>Log In</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.toggleButton, !isLogin && styles.toggleButtonActive]}
-                // CORRECCIÓN: Usamos la nueva función para limpiar campos
                 onPress={() => cambiarModo(false)}
               >
                 <Text style={[styles.toggleText, !isLogin && styles.toggleTextActive]}>
@@ -119,9 +161,7 @@ export default function LoginScreen() {
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.welcomeText}>
-              Bienvenido a MI Barrio
-            </Text>
+            <Text style={styles.welcomeText}>Bienvenido a MI Barrio</Text>
 
             <View style={styles.formContainer}>
               {!isLogin && (
@@ -133,7 +173,7 @@ export default function LoginScreen() {
                   onChangeText={setNombre}
                 />
               )}
-              
+
               <TextInput
                 style={styles.input}
                 placeholder="E-mail"
@@ -143,7 +183,7 @@ export default function LoginScreen() {
                 value={email}
                 onChangeText={setEmail}
               />
-              
+
               <View style={styles.passwordContainer}>
                 <TextInput
                   style={styles.inputPassword}
@@ -154,10 +194,10 @@ export default function LoginScreen() {
                   onChangeText={setPassword}
                 />
                 <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                  <Ionicons 
-                    name={showPassword ? "eye-outline" : "eye-off-outline"} 
-                    size={20} 
-                    color={Colors.text} 
+                  <Ionicons
+                    name={showPassword ? 'eye-outline' : 'eye-off-outline'}
+                    size={20}
+                    color={Colors.text}
                   />
                 </TouchableOpacity>
               </View>
@@ -173,10 +213,10 @@ export default function LoginScreen() {
                     onChangeText={setConfirmPassword}
                   />
                   <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
-                    <Ionicons 
-                      name={showConfirmPassword ? "eye-outline" : "eye-off-outline"} 
-                      size={20} 
-                      color={Colors.text} 
+                    <Ionicons
+                      name={showConfirmPassword ? 'eye-outline' : 'eye-off-outline'}
+                      size={20}
+                      color={Colors.text}
                     />
                   </TouchableOpacity>
                 </View>
@@ -191,16 +231,17 @@ export default function LoginScreen() {
               {isLoading ? (
                 <ActivityIndicator color={Colors.surface} />
               ) : (
-                <Text style={styles.actionButtonText}>
-                  {isLogin ? 'Log In' : 'Sign Up'}
-                </Text>
+                <Text style={styles.actionButtonText}>{isLogin ? 'Log In' : 'Sign Up'}</Text>
               )}
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.googleButton} onPress={handleGoogleLogin} disabled={isLoading}>
+            <TouchableOpacity
+              style={styles.googleButton}
+              onPress={handleGoogleLogin}
+              disabled={isLoading}
+            >
               <Text style={styles.googleButtonText}>Continuar con Google</Text>
             </TouchableOpacity>
-
           </View>
         </View>
       </View>
@@ -217,12 +258,9 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.xxl,
     justifyContent: 'center',
   },
-  
   logoContainer: { flex: 0.8, justifyContent: 'center', alignItems: 'center' },
   logo: { width: 250, height: 90 },
-  
   cardWrapper: { flex: 2, alignItems: 'center' },
-  
   card: {
     backgroundColor: Colors.surface,
     borderRadius: Radius.lg,
@@ -232,7 +270,6 @@ const styles = StyleSheet.create({
     borderColor: Colors.primary,
     alignItems: 'center',
   },
-
   toggleContainer: {
     flexDirection: 'row',
     backgroundColor: Colors.background,
@@ -248,7 +285,7 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     alignItems: 'center',
   },
-  toggleButtonActive: { 
+  toggleButtonActive: {
     backgroundColor: Colors.primary,
     borderLeftWidth: 1,
     borderRightWidth: 1,
@@ -256,7 +293,6 @@ const styles = StyleSheet.create({
   },
   toggleText: { color: Colors.text, fontSize: FontSize.md },
   toggleTextActive: { color: Colors.surface, fontWeight: 'bold' },
-
   welcomeText: {
     fontSize: FontSize.lg,
     color: Colors.text,
@@ -264,12 +300,10 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
   },
-
   formContainer: {
     width: '100%',
     marginBottom: Spacing.lg,
   },
-
   input: {
     borderBottomWidth: 1,
     borderBottomColor: Colors.text,
@@ -278,7 +312,6 @@ const styles = StyleSheet.create({
     fontSize: FontSize.md,
     color: Colors.text,
   },
-
   passwordContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -292,7 +325,6 @@ const styles = StyleSheet.create({
     fontSize: FontSize.md,
     color: Colors.text,
   },
-
   actionButton: {
     backgroundColor: Colors.primary,
     borderRadius: Radius.lg,
@@ -303,12 +335,11 @@ const styles = StyleSheet.create({
     borderColor: Colors.text,
     marginBottom: Spacing.md,
   },
-  actionButtonText: { 
-    color: Colors.surface, 
+  actionButtonText: {
+    color: Colors.surface,
     fontSize: FontSize.lg,
     fontWeight: 'bold',
   },
-
   googleButton: {
     backgroundColor: '#fff',
     borderRadius: Radius.lg,
@@ -319,9 +350,9 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     marginTop: Spacing.sm,
   },
-  googleButtonText: { 
-    color: '#333', 
+  googleButtonText: {
+    color: '#333',
     fontSize: FontSize.md,
-    fontWeight: 'bold' 
+    fontWeight: 'bold',
   },
 });
