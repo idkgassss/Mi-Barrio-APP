@@ -11,10 +11,11 @@ export default function HomeScreen() {
   const router = useRouter();
   const [menuVisible, setMenuVisible] = useState(false);
 
+  // Cambiado: "solicitados" por "solucionados"
   const [contadores, setContadores] = useState({
     pendientes: 0,
     enProceso: 0,
-    solicitados: 0,
+    solucionados: 0,
   });
 
   useEffect(() => {
@@ -34,12 +35,13 @@ export default function HomeScreen() {
     const unsubscribe = onSnapshot(q, (snapshot) => {
       let pendientes = 0;
       let enProceso = 0;
-      let solicitados = 0;
+      let solucionados = 0; // Cambiado acá también
 
       snapshot.docs.forEach((doc) => {
         const estado = (doc.data().estado || 'pendiente').toLowerCase();
-        if (estado === 'solicitado' || estado === 'solucionado') {
-          solicitados++;
+        // Mantenemos la lógica por si en tu base de datos quedó guardado como "solicitado"
+        if (estado === 'solucionado' || estado === 'solicitado') {
+          solucionados++;
         } else if (estado === 'en proceso' || estado === 'proceso') {
           enProceso++;
         } else {
@@ -47,7 +49,8 @@ export default function HomeScreen() {
         }
       });
 
-      setContadores({ pendientes, enProceso, solicitados });
+      // Actualizamos el estado con "solucionados"
+      setContadores({ pendientes, enProceso, solucionados });
     });
 
     return () => unsubscribe();
@@ -99,9 +102,10 @@ export default function HomeScreen() {
         <View style={styles.summaryRow}>
           <View style={styles.rowLeft}>
             <View style={[styles.dot, { backgroundColor: Colors.success || '#22C55E' }]} />
-            <Text style={styles.rowText}>Solicitados</Text>
+            {/* Texto actualizado a Solucionados */}
+            <Text style={styles.rowText}>Solucionados</Text>
           </View>
-          <Text style={styles.rowCount}>{contadores.solicitados}</Text>
+          <Text style={styles.rowCount}>{contadores.solucionados}</Text>
         </View>
       </View>
 

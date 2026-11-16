@@ -55,8 +55,10 @@ export default function DetalleReporteScreen() {
 
   const getEstadoInfo = (estado: string) => {
     const est = estado?.toLowerCase() || 'pendiente';
-    if (est === 'solicitado' || est === 'solucionado') {
-      return { color: '#22C55E', texto: 'Solicitado', bg: '#E5FFE5' };
+    // Mantenemos la doble validación por si en la base de datos se guarda como "solicitado" o "solucionado"
+    if (est === 'solucionado' || est === 'solicitado') {
+      // ACÁ ESTÁ EL CAMBIO: texto: 'Solucionado'
+      return { color: '#22C55E', texto: 'Solucionado', bg: '#E5FFE5' };
     }
     if (est === 'en proceso' || est === 'proceso') {
       return { color: '#F97316', texto: 'En proceso', bg: '#FFF3E0' };
@@ -66,11 +68,11 @@ export default function DetalleReporteScreen() {
 
   const estadoInfo = getEstadoInfo(reporte.estado);
   const imagenUrl = reporte.foto || reporte.imagen;
-  
-  // CORRECCIÓN CLAVE: Leemos la ubicación en texto, evitamos el objeto de coordenadas
-  const direccionTexto = reporte.ubicacionTexto 
-    || (typeof reporte.ubicacion === 'string' ? reporte.ubicacion : reporte.direccion) 
-    || 'Ubicación marcada en el mapa';
+
+  const direccionTexto =
+    reporte.ubicacionTexto ||
+    (typeof reporte.ubicacion === 'string' ? reporte.ubicacion : reporte.direccion) ||
+    'Ubicación marcada en el mapa';
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>

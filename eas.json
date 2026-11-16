@@ -1,7 +1,6 @@
 {
   "cli": {
-    "version": ">= 27.9.0",
-    "appVersionSource": "remote"
+    "version": ">= 7.0.0"
   },
   "build": {
     "development": {
@@ -9,10 +8,23 @@
       "distribution": "internal"
     },
     "preview": {
-      "distribution": "internal"
+      "android": {
+        "buildType": "apk"
+      }
     },
     "production": {
-      "autoIncrement": true
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_FB_API_KEY": "AIzaSyBZ3dw-UTmhzKuyyPwOvn8GqZpbhZD91YU",
+        "EXPO_PUBLIC_FB_AUTH_DOMAIN": "mi-barrio-app-55e87.firebaseapp.com",
+        "EXPO_PUBLIC_FB_PROJECT_ID": "mi-barrio-app-55e87",
+        "EXPO_PUBLIC_FB_STORAGE_BUCKET": "mi-barrio-app-55e87.firebasestorage.app",
+        "EXPO_PUBLIC_FB_MSG_SENDER_ID": "327371000510",
+        "EXPO_PUBLIC_FB_APP_ID": "1:327371000510:web:47d7a3c5f67ef743e56cef",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "327371000510-13q11f5t80cb3tgdk1qdui1ko16d50t2.apps.googleusercontent.com"
+      }
     }
   },
   "submit": {

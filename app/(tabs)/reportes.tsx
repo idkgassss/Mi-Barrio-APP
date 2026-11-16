@@ -56,8 +56,8 @@ export default function ReportesScreen() {
 
   const getEstadoInfo = (estado: string) => {
     const est = estado?.toLowerCase() || 'pendiente';
-    if (est === 'solicitado' || est === 'solucionado') {
-      return { color: '#22C55E', texto: 'Solicitado' };
+    if (est === 'solucionado' || est === 'solucionado') {
+      return { color: '#22C55E', texto: 'Solucionado' };
     }
     if (est === 'en proceso' || est === 'proceso') {
       return { color: '#F97316', texto: 'En proceso' };
@@ -75,12 +75,13 @@ export default function ReportesScreen() {
   const renderItem = ({ item }: { item: any }) => {
     const estadoInfo = getEstadoInfo(item.estado);
     const imagenUrl = item.foto || item.imagen;
-    
-    // CORRECCIÓN CLAVE: 
-    // Leemos ubicacionTexto (el nuevo formato) 
+
+    // CORRECCIÓN CLAVE:
+    // Leemos ubicacionTexto (el nuevo formato)
     // Si no existe (es un reporte viejo), verificamos que item.ubicacion sea un string. Si es un objeto, lo ignoramos.
-    const ubicacionAMostrar = item.ubicacionTexto 
-      || (typeof item.ubicacion === 'string' ? item.ubicacion : 'Ubicación marcada en el mapa');
+    const ubicacionAMostrar =
+      item.ubicacionTexto ||
+      (typeof item.ubicacion === 'string' ? item.ubicacion : 'Ubicación marcada en el mapa');
 
     return (
       <TouchableOpacity
