@@ -3,6 +3,7 @@ import { initializeApp, getApps, getApp } from 'firebase/app';
 import { initializeAuth, getAuth, getReactNativePersistence, Auth } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getFirestore } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage'; // <-- Agregado para las fotos
 
 const firebaseConfig = {
   apiKey: process.env.EXPO_PUBLIC_FB_API_KEY,
@@ -30,3 +31,6 @@ export const auth = authInstance;
 
 // 3. Inicializar Firestore
 export const db = getFirestore(app);
+
+// 4. Inicializar Storage
+export const storage = getStorage(app); // <-- Agregado para exportar el storage

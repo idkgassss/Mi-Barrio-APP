@@ -1,4 +1,3 @@
-// app/(auth)/login.tsx
 import { useState } from 'react';
 import {
   View,
@@ -11,20 +10,32 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, Radius } from '@/constants/theme';
 import { authService } from '../../services/authService';
 
 export default function LoginScreen() {
-  // Estados del formulario
-  const [isLogin, setIsLogin] = useState(true); // true = Login, false = Registro
+  const [isLogin, setIsLogin] = useState(true); 
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Datos que escribe el usuario
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [nombre, setNombre] = useState(''); // Solo se usa al registrarse
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [nombre, setNombre] = useState(''); 
 
-  // Función para Correo/Contraseña
+  // NUEVA FUNCIÓN: Limpia todos los campos al cambiar de Log In a Sign Up
+  const cambiarModo = (modoLogin: boolean) => {
+    setIsLogin(modoLogin);
+    setEmail('');
+    setPassword('');
+    setConfirmPassword('');
+    setNombre('');
+    setShowPassword(false);
+    setShowConfirmPassword(false);
+  };
+
   const handleEmailSubmit = async () => {
     if (!email || !password) {
       Alert.alert('Error', 'Por favor completá todos los campos.');
@@ -34,18 +45,20 @@ export default function LoginScreen() {
     setIsLoading(true);
     try {
       if (isLogin) {
-        // Modo Iniciar Sesión
         await authService.loginWithEmail(email, password);
       } else {
-        // Modo Registrarse
         if (!nombre) {
           Alert.alert('Error', 'Por favor ingresá tu nombre.');
           setIsLoading(false);
           return;
         }
+        if (password !== confirmPassword) {
+          Alert.alert('Error', 'Las contraseñas no coinciden.');
+          setIsLoading(false);
+          return;
+        }
         await authService.registerWithEmail(email, password, nombre);
       }
-      // Si salió bien, el _layout.tsx lo redirige solo.
     } catch (error: any) {
       console.error(error);
       Alert.alert('Error', 'Ocurrió un problema. Verificá tus datos.');
@@ -54,7 +67,6 @@ export default function LoginScreen() {
     }
   };
 
-  // Función para Google
   const handleGoogleLogin = async () => {
     setIsLoading(true);
     try {
@@ -74,6 +86,7 @@ export default function LoginScreen() {
       resizeMode="cover"
     >
       <View style={styles.overlay}>
+        
         <View style={styles.logoContainer}>
           <Image
             source={require('../../assets/logo.png')}
@@ -84,57 +97,91 @@ export default function LoginScreen() {
 
         <View style={styles.cardWrapper}>
           <View style={styles.card}>
-            {/* Pestañas (Login / Registro) */}
+            
             <View style={styles.toggleContainer}>
               <TouchableOpacity
                 style={[styles.toggleButton, isLogin && styles.toggleButtonActive]}
-                onPress={() => setIsLogin(true)}
+                // CORRECCIÓN: Usamos la nueva función para limpiar campos
+                onPress={() => cambiarModo(true)} 
               >
                 <Text style={[styles.toggleText, isLogin && styles.toggleTextActive]}>
-                  Ingresar
+                  Log In
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.toggleButton, !isLogin && styles.toggleButtonActive]}
-                onPress={() => setIsLogin(false)}
+                // CORRECCIÓN: Usamos la nueva función para limpiar campos
+                onPress={() => cambiarModo(false)}
               >
                 <Text style={[styles.toggleText, !isLogin && styles.toggleTextActive]}>
-                  Registrarme
+                  Sign Up
                 </Text>
               </TouchableOpacity>
             </View>
 
             <Text style={styles.welcomeText}>
-              {isLogin ? '¡Hola de nuevo!' : 'Crear una cuenta'}
+              Bienvenido a MI Barrio
             </Text>
 
-            {/* Formulario Clásico */}
-            {!isLogin && (
+            <View style={styles.formContainer}>
+              {!isLogin && (
+                <TextInput
+                  style={styles.input}
+                  placeholder="Name"
+                  placeholderTextColor={Colors.text}
+                  value={nombre}
+                  onChangeText={setNombre}
+                />
+              )}
+              
               <TextInput
                 style={styles.input}
-                placeholder="Tu Nombre"
+                placeholder="E-mail"
                 placeholderTextColor={Colors.text}
-                value={nombre}
-                onChangeText={setNombre}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                value={email}
+                onChangeText={setEmail}
               />
-            )}
-            <TextInput
-              style={styles.input}
-              placeholder="E-mail"
-              placeholderTextColor={Colors.text}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              value={email}
-              onChangeText={setEmail}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Contraseña"
-              placeholderTextColor={Colors.text}
-              secureTextEntry
-              value={password}
-              onChangeText={setPassword}
-            />
+              
+              <View style={styles.passwordContainer}>
+                <TextInput
+                  style={styles.inputPassword}
+                  placeholder="Password"
+                  placeholderTextColor={Colors.text}
+                  secureTextEntry={!showPassword}
+                  value={password}
+                  onChangeText={setPassword}
+                />
+                <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                  <Ionicons 
+                    name={showPassword ? "eye-outline" : "eye-off-outline"} 
+                    size={20} 
+                    color={Colors.text} 
+                  />
+                </TouchableOpacity>
+              </View>
+
+              {!isLogin && (
+                <View style={styles.passwordContainer}>
+                  <TextInput
+                    style={styles.inputPassword}
+                    placeholder="Password confirmation"
+                    placeholderTextColor={Colors.text}
+                    secureTextEntry={!showConfirmPassword}
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                  />
+                  <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+                    <Ionicons 
+                      name={showConfirmPassword ? "eye-outline" : "eye-off-outline"} 
+                      size={20} 
+                      color={Colors.text} 
+                    />
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
 
             <TouchableOpacity
               style={styles.actionButton}
@@ -144,25 +191,16 @@ export default function LoginScreen() {
               {isLoading ? (
                 <ActivityIndicator color={Colors.surface} />
               ) : (
-                <Text style={styles.actionButtonText}>{isLogin ? 'Ingresar' : 'Registrarme'}</Text>
+                <Text style={styles.actionButtonText}>
+                  {isLogin ? 'Log In' : 'Sign Up'}
+                </Text>
               )}
             </TouchableOpacity>
 
-            {/* Separador */}
-            <View style={styles.separatorContainer}>
-              <View style={styles.separatorLine} />
-              <Text style={styles.separatorText}>o</Text>
-              <View style={styles.separatorLine} />
-            </View>
-
-            {/* Botón de Google */}
-            <TouchableOpacity
-              style={styles.googleButton}
-              onPress={handleGoogleLogin}
-              disabled={isLoading}
-            >
+            <TouchableOpacity style={styles.googleButton} onPress={handleGoogleLogin} disabled={isLoading}>
               <Text style={styles.googleButtonText}>Continuar con Google</Text>
             </TouchableOpacity>
+
           </View>
         </View>
       </View>
@@ -177,11 +215,14 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(28, 56, 111, 0.7)',
     paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing.xxl,
+    justifyContent: 'center',
   },
-  logoContainer: { flex: 0.6, justifyContent: 'center', alignItems: 'center' },
+  
+  logoContainer: { flex: 0.8, justifyContent: 'center', alignItems: 'center' },
   logo: { width: 250, height: 90 },
-  cardWrapper: { flex: 1.4, justifyContent: 'flex-start' },
-
+  
+  cardWrapper: { flex: 2, alignItems: 'center' },
+  
   card: {
     backgroundColor: Colors.surface,
     borderRadius: Radius.lg,
@@ -189,23 +230,30 @@ const styles = StyleSheet.create({
     width: '100%',
     borderWidth: 2,
     borderColor: Colors.primary,
+    alignItems: 'center',
   },
 
   toggleContainer: {
     flexDirection: 'row',
     backgroundColor: Colors.background,
-    borderRadius: Radius.lg,
+    borderRadius: 25,
     borderWidth: 1,
     borderColor: Colors.text,
     marginBottom: Spacing.xl,
+    width: '100%',
+    overflow: 'hidden',
   },
   toggleButton: {
     flex: 1,
     paddingVertical: Spacing.md,
-    borderRadius: Radius.lg,
     alignItems: 'center',
   },
-  toggleButtonActive: { backgroundColor: Colors.primary },
+  toggleButtonActive: { 
+    backgroundColor: Colors.primary,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderColor: Colors.text,
+  },
   toggleText: { color: Colors.text, fontSize: FontSize.md },
   toggleTextActive: { color: Colors.surface, fontWeight: 'bold' },
 
@@ -216,6 +264,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
   },
+
+  formContainer: {
+    width: '100%',
+    marginBottom: Spacing.lg,
+  },
+
   input: {
     borderBottomWidth: 1,
     borderBottomColor: Colors.text,
@@ -225,29 +279,49 @@ const styles = StyleSheet.create({
     color: Colors.text,
   },
 
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.text,
+    marginBottom: Spacing.lg,
+  },
+  inputPassword: {
+    flex: 1,
+    paddingVertical: Spacing.sm,
+    fontSize: FontSize.md,
+    color: Colors.text,
+  },
+
   actionButton: {
     backgroundColor: Colors.primary,
     borderRadius: Radius.lg,
     paddingVertical: Spacing.md,
+    width: '100%',
     alignItems: 'center',
     borderWidth: 1,
     borderColor: Colors.text,
     marginBottom: Spacing.md,
   },
-  actionButtonText: { color: Colors.surface, fontSize: FontSize.lg, fontWeight: 'bold' },
-
-  separatorContainer: { flexDirection: 'row', alignItems: 'center', marginVertical: Spacing.sm },
-  separatorLine: { flex: 1, height: 1, backgroundColor: Colors.text, opacity: 0.3 },
-  separatorText: { marginHorizontal: Spacing.md, color: Colors.text, opacity: 0.7 },
+  actionButtonText: { 
+    color: Colors.surface, 
+    fontSize: FontSize.lg,
+    fontWeight: 'bold',
+  },
 
   googleButton: {
     backgroundColor: '#fff',
     borderRadius: Radius.lg,
     paddingVertical: Spacing.md,
+    width: '100%',
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#ccc',
     marginTop: Spacing.sm,
   },
-  googleButtonText: { color: '#333', fontSize: FontSize.md, fontWeight: 'bold' },
+  googleButtonText: { 
+    color: '#333', 
+    fontSize: FontSize.md,
+    fontWeight: 'bold' 
+  },
 });

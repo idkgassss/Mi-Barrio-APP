@@ -30,32 +30,40 @@ const OPCIONES_TIEMPO = [
 
 export default function Paso3Screen() {
   const router = useRouter();
-  const { fotoUri } = useLocalSearchParams<{ fotoUri: string }>();
+  
+  // ACA ESTÁ EL CAMBIO: Ahora recibimos también la "categoria"
+  const { fotoUri, categoria } = useLocalSearchParams<{ fotoUri: string, categoria: string }>();
 
   const [descripcion, setDescripcion] = useState('');
   const [tiempoSeleccionado, setTiempoSeleccionado] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
-  const [ubicacion, setUbicacion] = useState<string | null>(null);
+  
+  const [ubicacionTexto, setUbicacionTexto] = useState<string | null>(null);
+  const [coordenadas, setCoordenadas] = useState<{latitude: number, longitude: number} | null>(null);
+  
   const [cargandoUbicacion, setCargandoUbicacion] = useState(false);
   const [cargandoEnvio, setCargandoEnvio] = useState(false);
 
-  // ENVÍO REAL A FIRESTORE
   const handleEnviar = async () => {
-    if (!descripcion || !tiempoSeleccionado || !ubicacion) return;
+    if (!descripcion || !tiempoSeleccionado || !ubicacionTexto || !coordenadas) return;
 
     try {
       setCargandoEnvio(true);
 
-      // Guardamos el documento completo con la foto en Base64 en Firestore
       await addDoc(collection(db, 'reportes'), {
         usuarioId: auth.currentUser?.uid || 'anonimo',
         emailUsuario: auth.currentUser?.email || 'Desconocido',
         descripcion: descripcion,
         antiguedad: tiempoSeleccionado,
-        ubicacion: ubicacion,
-        foto: fotoUri || null, // Aquí viaja el base64 comprimido
+        ubicacionTexto: ubicacionTexto,
+        ubicacion: coordenadas, 
+        foto: fotoUri || null,
         fecha: new Date().toISOString(),
         estado: 'Pendiente',
+        
+        // ACA ESTÁ EL CAMBIO: Guardamos la categoría real elegida
+        titulo: categoria || 'Reporte Vecinal', 
+        tipo: categoria || 'Incidente',
       });
 
       router.push('/reportar/exito');
@@ -82,15 +90,18 @@ export default function Paso3Screen() {
       });
 
       const { latitude, longitude } = posicion.coords;
+      
+      setCoordenadas({ latitude, longitude });
+
       const resultados = await Location.reverseGeocodeAsync({ latitude, longitude });
 
       if (resultados.length > 0) {
         const direccion = resultados[0];
         const calle = direccion.street || 'Ubicación actual';
         const localidad = direccion.city || direccion.subregion || 'Buenos Aires';
-        setUbicacion(`${calle}, ${localidad}`);
+        setUbicacionTexto(`${calle}, ${localidad}`);
       } else {
-        setUbicacion(`Lat: ${latitude.toFixed(4)}, Lon: ${longitude.toFixed(4)}`);
+        setUbicacionTexto(`Lat: ${latitude.toFixed(4)}, Lon: ${longitude.toFixed(4)}`);
       }
     } catch (error) {
       Alert.alert('Error', 'No se pudo obtener la ubicación actual.');
@@ -146,15 +157,15 @@ export default function Paso3Screen() {
           disabled={cargandoUbicacion}
         >
           <Ionicons
-            name={ubicacion ? 'location' : 'location-outline'}
+            name={ubicacionTexto ? 'location' : 'location-outline'}
             size={20}
-            color={ubicacion ? Colors.primary : Colors.text}
+            color={ubicacionTexto ? Colors.primary : Colors.text}
           />
-          <Text style={[styles.locationText, !ubicacion && styles.dropdownPlaceholder]}>
+          <Text style={[styles.locationText, !ubicacionTexto && styles.dropdownPlaceholder]}>
             {cargandoUbicacion
               ? 'Obteniendo ubicación GPS...'
-              : ubicacion
-                ? ubicacion
+              : ubicacionTexto
+                ? ubicacionTexto
                 : 'Tocar para obtener mi ubicación'}
           </Text>
         </TouchableOpacity>
@@ -172,11 +183,11 @@ export default function Paso3Screen() {
         <TouchableOpacity
           style={[
             styles.submitButton,
-            (!descripcion || !tiempoSeleccionado || !ubicacion || cargandoEnvio) &&
+            (!descripcion || !tiempoSeleccionado || !ubicacionTexto || !coordenadas || cargandoEnvio) &&
               styles.submitButtonDisabled,
           ]}
           onPress={handleEnviar}
-          disabled={!descripcion || !tiempoSeleccionado || !ubicacion || cargandoEnvio}
+          disabled={!descripcion || !tiempoSeleccionado || !ubicacionTexto || !coordenadas || cargandoEnvio}
         >
           {cargandoEnvio ? (
             <ActivityIndicator color={Colors.surface} />
@@ -218,113 +229,30 @@ export default function Paso3Screen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingTop: Spacing.xxl * 1.5,
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.lg,
-  },
+  header: { flexDirection: 'row', alignItems: 'center', paddingTop: Spacing.xxl * 1.5, paddingHorizontal: Spacing.lg, paddingBottom: Spacing.lg },
   backButton: { marginRight: Spacing.md },
   headerTitle: { fontSize: FontSize.xl, color: Colors.text },
   content: { flex: 1, paddingHorizontal: Spacing.xl, paddingTop: Spacing.lg },
   sectionTitle: { fontSize: FontSize.lg, color: Colors.text, marginBottom: Spacing.lg },
-  textAreaContainer: {
-    backgroundColor: 'rgba(0, 0, 0, 0.1)',
-    borderRadius: Radius.sm,
-    padding: Spacing.md,
-    height: 120,
-    marginBottom: Spacing.md,
-  },
+  textAreaContainer: { backgroundColor: 'rgba(0, 0, 0, 0.1)', borderRadius: Radius.sm, padding: Spacing.md, height: 120, marginBottom: Spacing.md },
   textArea: { flex: 1, fontSize: FontSize.md, color: Colors.text },
-  charCounter: {
-    position: 'absolute',
-    bottom: Spacing.sm,
-    right: Spacing.sm,
-    fontSize: FontSize.sm,
-    color: 'rgba(0,0,0,0.5)',
-  },
-  fotoContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(28, 100, 242, 0.05)',
-    padding: Spacing.sm,
-    borderRadius: Radius.sm,
-    marginBottom: Spacing.xl,
-    borderWidth: 1,
-    borderColor: Colors.primary,
-  },
-  fotoText: {
-    flex: 1,
-    fontSize: FontSize.sm,
-    color: Colors.primary,
-    marginLeft: Spacing.sm,
-    fontWeight: '500',
-  },
+  charCounter: { position: 'absolute', bottom: Spacing.sm, right: Spacing.sm, fontSize: FontSize.sm, color: 'rgba(0,0,0,0.5)' },
+  fotoContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(28, 100, 242, 0.05)', padding: Spacing.sm, borderRadius: Radius.sm, marginBottom: Spacing.xl, borderWidth: 1, borderColor: Colors.primary },
+  fotoText: { flex: 1, fontSize: FontSize.sm, color: Colors.primary, marginLeft: Spacing.sm, fontWeight: '500' },
   miniaturaFoto: { width: 40, height: 40, borderRadius: Radius.sm, marginLeft: Spacing.md },
   dropdownLabel: { fontSize: FontSize.md, color: Colors.text, marginBottom: Spacing.sm },
-  dropdownButton: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.1)',
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.md,
-    borderRadius: Radius.sm,
-    marginBottom: Spacing.xl,
-  },
+  dropdownButton: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.1)', paddingVertical: Spacing.md, paddingHorizontal: Spacing.md, borderRadius: Radius.sm, marginBottom: Spacing.xl },
   dropdownText: { fontSize: FontSize.md, color: Colors.text },
   dropdownPlaceholder: { color: 'rgba(0,0,0,0.6)' },
-  locationButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.1)',
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.md,
-    borderRadius: Radius.sm,
-    marginBottom: Spacing.xl,
-  },
+  locationButton: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.1)', paddingVertical: Spacing.md, paddingHorizontal: Spacing.md, borderRadius: Radius.sm, marginBottom: Spacing.xl },
   locationText: { fontSize: FontSize.md, color: Colors.text, marginLeft: Spacing.sm },
-  footer: {
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.md,
-    paddingBottom: Spacing.xxl * 1.5,
-    backgroundColor: Colors.background,
-    alignItems: 'flex-end',
-  },
-  submitButton: {
-    backgroundColor: Colors.primary,
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.xl,
-    borderRadius: 30,
-    minWidth: 140,
-    alignItems: 'center',
-  },
+  footer: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.md, paddingBottom: Spacing.xxl * 1.5, backgroundColor: Colors.background, alignItems: 'flex-end' },
+  submitButton: { backgroundColor: Colors.primary, paddingVertical: Spacing.md, paddingHorizontal: Spacing.xl, borderRadius: 30, minWidth: 140, alignItems: 'center' },
   submitButtonDisabled: { opacity: 0.5 },
   submitButtonText: { color: Colors.surface, fontSize: FontSize.md, fontWeight: 'bold' },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    width: '80%',
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.lg,
-    padding: Spacing.lg,
-    maxHeight: '60%',
-  },
-  modalTitle: {
-    fontSize: FontSize.lg,
-    fontWeight: 'bold',
-    marginBottom: Spacing.md,
-    color: Colors.text,
-  },
-  modalOption: {
-    paddingVertical: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.1)',
-  },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
+  modalContent: { width: '80%', backgroundColor: Colors.surface, borderRadius: Radius.lg, padding: Spacing.lg, maxHeight: '60%' },
+  modalTitle: { fontSize: FontSize.lg, fontWeight: 'bold', marginBottom: Spacing.md, color: Colors.text },
+  modalOption: { paddingVertical: Spacing.md, borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.1)' },
   modalOptionText: { fontSize: FontSize.md, color: Colors.text },
 });

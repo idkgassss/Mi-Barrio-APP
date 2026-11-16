@@ -1,4 +1,4 @@
-// app/nuevo.tsx
+// app/reportar/nuevo.tsx
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -36,14 +36,16 @@ export default function NuevoReporteScreen() {
 
   const onSubmit = async (data: any) => {
     try {
-      let imagenUrl = '';
+      let urlStorage = '';
       if (imageUri) {
-        imagenUrl = await uploadImage(imageUri, 'reportes');
+        // 1. Sube el archivo y espera el link público
+        urlStorage = await uploadImage(imageUri, 'reportes');
       }
 
+      // 2. Sobreescribe explícitamente el campo "foto" esperado por Firestore
       const reporteFinal = {
         ...data,
-        imagen: imagenUrl,
+        foto: urlStorage,
         latitude: location?.latitude,
         longitude: location?.longitude,
       };

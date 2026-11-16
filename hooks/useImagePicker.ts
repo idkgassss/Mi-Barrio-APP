@@ -10,6 +10,7 @@ export function useImagePicker() {
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       quality: 0.7,
+      base64: false, // <-- Bloqueamos explícitamente el Base64
     });
 
     if (!result.canceled) {
@@ -21,6 +22,7 @@ export function useImagePicker() {
     const result = await ImagePicker.launchCameraAsync({
       allowsEditing: true,
       quality: 0.7,
+      base64: false, // <-- Bloqueamos explícitamente el Base64
     });
 
     if (!result.canceled) {

@@ -75,6 +75,12 @@ export default function ReportesScreen() {
   const renderItem = ({ item }: { item: any }) => {
     const estadoInfo = getEstadoInfo(item.estado);
     const imagenUrl = item.foto || item.imagen;
+    
+    // CORRECCIÓN CLAVE: 
+    // Leemos ubicacionTexto (el nuevo formato) 
+    // Si no existe (es un reporte viejo), verificamos que item.ubicacion sea un string. Si es un objeto, lo ignoramos.
+    const ubicacionAMostrar = item.ubicacionTexto 
+      || (typeof item.ubicacion === 'string' ? item.ubicacion : 'Ubicación marcada en el mapa');
 
     return (
       <TouchableOpacity
@@ -103,7 +109,7 @@ export default function ReportesScreen() {
             <View style={styles.row}>
               <Ionicons name="location-outline" size={20} color="#888" style={styles.icon} />
               <Text style={styles.direccion} numberOfLines={2}>
-                {item.ubicacion || item.direccion || 'Ubicación no especificada'}
+                {ubicacionAMostrar}
               </Text>
             </View>
 
